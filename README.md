@@ -31,6 +31,8 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 [{ "id": "uuid", "playerId": "ABC", "score": 50, "timestamp": "2026-11-23T12:00:00.000Z" }]
 ```
 
+`GET /api/scores?sort=latest&limit=1` zwraca ostatnią grę (pasek „ostatnia gra” na stronie).
+
 `id` i `timestamp` nadaje baza, bo micro:bit nie ma zegara ani generatora UUID.
 
 ## Kod
@@ -38,6 +40,7 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 - `app/api/scores/route.ts` - GameController (POST, GET)
 - `lib/scoreValidator.ts` - sprawdza body od bramki
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
+- `app/leaderboard.tsx` - ranking na stronie, odświeżany co 2 s, nowy wynik miga
 - `db/schema.sql` - tabela `scores`
 
 ## Uruchomienie lokalnie
@@ -52,6 +55,6 @@ npm run dev
 ## Status
 
 - [x] API + baza
-- [ ] strona z rankingiem
+- [x] strona z rankingiem
 - [ ] gra w MakeCode
 - [ ] wyświetlacz fizyczny

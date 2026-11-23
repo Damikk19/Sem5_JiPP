@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
+/* Ciemny motyw jak na automacie, czerwień jak diody micro:bita. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #08080b;
+  --foreground: #ececf1;
+  --muted: #8a8a96;
+  --line: #24242c;
+  --led: #ff3b2f;
+  --live: #3ddc84;
+  --gold: #ffcc33;
+  --silver: #c9d1d9;
+  --bronze: #d98c5f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-mono-text);
+  --font-mono: var(--font-mono-text);
+  --font-pixel: var(--font-press-start);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-mono-text), ui-monospace, monospace;
+}
+
+.led-on {
+  background: var(--led);
+  box-shadow: 0 0 6px var(--led);
+}
+
+/* Nowy wynik miga na czerwono przez 3 sekundy. */
+.flash {
+  animation: flash 3s ease-out;
+}
+
+@keyframes flash {
+  0%,
+  20%,
+  40% {
+    background: color-mix(in srgb, var(--led) 35%, transparent);
+  }
+  10%,
+  30% {
+    background: transparent;
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    animation: none;
+    background: color-mix(in srgb, var(--led) 15%, transparent);
+  }
 }

@@ -1,7 +1,7 @@
 // GameController z diagramu C4: POST zapisuje wynik, GET zwraca ranking.
 import type { NextRequest } from "next/server";
 import { parse } from "@/lib/scoreValidator";
-import { getTop, save } from "@/lib/scoreRepository";
+import { getLatest, getTop, save } from "@/lib/scoreRepository";
 
 // Bramka i Arduino nie wysyłają nagłówków CORS, ale przeglądarka już tak,
 // więc pozwalamy na wywołania z dowolnej strony (np. testy z przeglądarki).
@@ -40,8 +40,11 @@ export async function GET(request: NextRequest) {
   const raw = Number(request.nextUrl.searchParams.get("limit") ?? 10);
   const limit = Number.isInteger(raw) ? Math.min(Math.max(raw, 1), 100) : 10;
 
+  // ?sort=latest zwraca ostatnie gry, domyślnie ranking od najlepszego wyniku.
+  const latest = request.nextUrl.searchParams.get("sort") === "latest";
+
   try {
-    return json(await getTop(limit));
+    return json(latest ? await getLatest(limit) : await getTop(limit));
   } catch (e) {
     console.error("GET /api/scores", e);
     return json({ error: "Błąd bazy danych" }, 500);

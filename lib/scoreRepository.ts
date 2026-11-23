@@ -19,3 +19,12 @@ export async function getTop(limit: number): Promise<Score[]> {
   );
   return rows as Score[];
 }
+
+// Ostatnie gry, od najnowszej (do paska „ostatnia gra” na stronie).
+export async function getLatest(limit: number): Promise<Score[]> {
+  const rows = await db().query(
+    `SELECT ${COLUMNS} FROM scores ORDER BY "timestamp" DESC LIMIT $1`,
+    [limit],
+  );
+  return rows as Score[];
+}
