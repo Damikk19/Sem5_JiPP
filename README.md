@@ -11,7 +11,7 @@ micro:bit (gra) --radio--> bramka prowadzącego --HTTP POST--> API (Next.js, Ver
                                                               API --GET--> strona z rankingiem, wyświetlacz
 ```
 
-Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API. Diagram C4: `docs/c4-ranking.pdf`.
+Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API. Diagram C4: `docs/c4-ranking.pdf`, wymagania funkcjonalne i struktury danych: `docs/wymagania.md`.
 
 ## API
 
