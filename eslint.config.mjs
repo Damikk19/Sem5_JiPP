@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Gra na micro:bita to osobny projekt MakeCode
+    "microbit/**",
   ]),
 ]);
 
