@@ -13,7 +13,9 @@ Strzelanka na micro:bita: z góry spadają kości RAM, a Ty strzelasz do nich ze
 - **DDR4** (przygaszona dioda): 1 trafienie, 1 pkt
 - **DDR5** (jasna dioda): 2 trafienia (po pierwszym przygasa), 3 pkt. Pojawia się coraz częściej.
 - Kość, która doleci do dolnego rzędu, zabiera życie. Są 3 życia, a jasność statku pokazuje, ile zostało.
-- Każda zestrzelona kość przyspiesza grę.
+- Każda zestrzelona kość przyspiesza grę. Tempo jest dobrane symulacją: przeciętna partia trwa ok. minuty.
+- **Potrząśnięcie = Garbage Collector** (raz na grę): ekran „skanuje pamięć” od góry do dołu, gra na chwilę staje jak przy GC typu stop-the-world i znikają wszystkie kości. Punktów za to nie ma, to koło ratunkowe.
+- Kiedy kość „wycieknie” na dół, ekran krótko błyska. Po trzeciej przegrana kończy się napisem **OUT OF MEMORY**.
 
 ## Nick i wysyłka
 
@@ -39,6 +41,6 @@ Po zmianie `main.ts` plik trzeba pobrać z MakeCode od nowa (Pobierz → Pobierz
 2. wklej zawartość `main.ts` (MakeCode sam doda pakiet radia)
 3. gra działa od razu w symulatorze, a **Pobierz** wgrywa ją na micro:bita przez USB
 
-Kod da się przełączyć na bloki. Szare zostają 3 bloki: szybkie wyświetlanie liter nicku i dźwięk w tle.
+Kod da się przełączyć na bloki. Szare zostają 4 bloki: szybkie wyświetlanie liter nicku, szybsze przewijanie tekstu i dźwięk w tle.
 
 Dźwięki używają klasycznego `music.playTone` zamiast nowego `music.play`, bo z nowym API program nie mieścił się na micro:bicie V1.
