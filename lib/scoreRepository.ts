@@ -28,3 +28,9 @@ export async function getLatest(limit: number): Promise<Score[]> {
   );
   return rows as Score[];
 }
+
+// Usuwa wynik po id i zwraca usunięty wpis (null, jeśli takiego nie było)
+export async function remove(id: string): Promise<Score | null> {
+  const rows = await db().query(`DELETE FROM scores WHERE id = $1 RETURNING ${COLUMNS}`, [id]);
+  return (rows[0] as Score | undefined) ?? null;
+}

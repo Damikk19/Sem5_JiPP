@@ -1,33 +1,14 @@
 // GameController z diagramu C4: POST zapisuje wynik (wymaga klucza API), GET zwraca ranking (publiczny).
+// Usuwanie pojedynczego wyniku jest w [id]/route.ts.
 import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
+import { authError, json, preflight } from "@/lib/http";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
 
-// Bramka i Arduino nie wysyłają nagłówków CORS, ale przeglądarka już tak,
-// więc pozwalamy na wywołania z dowolnej strony (np. testy z przeglądarki).
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
-};
-
-function json(data: unknown, status = 200) {
-  return Response.json(data, { status, headers: CORS });
-}
-
 export async function POST(request: NextRequest) {
   const auth = checkApiKey(request);
-  if (auth === "not-configured") {
-    console.error("POST /api/scores: brak API_TOKEN w zmiennych środowiskowych");
-    return json({ error: "Serwer nie ma skonfigurowanego klucza API" }, 500);
-  }
-  if (auth !== "ok") {
-    return Response.json(
-      { error: auth === "missing" ? "Brak klucza API" : "Zły klucz API" },
-      { status: 401, headers: { ...CORS, "WWW-Authenticate": "Bearer" } },
-    );
-  }
+  if (auth !== "ok") return authError(auth, "API");
 
   // Czytamy tekst zamiast request.json(), bo bramka może nie ustawić Content-Type.
   let body: unknown;
@@ -65,5 +46,5 @@ export async function GET(request: NextRequest) {
 }
 
 export function OPTIONS() {
-  return new Response(null, { status: 204, headers: CORS });
+  return preflight();
 }

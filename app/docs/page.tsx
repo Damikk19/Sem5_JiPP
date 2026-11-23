@@ -31,6 +31,17 @@ export default function Docs() {
       <p className="mt-2 text-sm">
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
       </p>
+
+      <h2 className="mt-8 font-semibold">DELETE /api/scores/&#123;id&#125;</h2>
+      <p className="mt-1 text-sm">
+        Usuwa wynik po <code>id</code> (np. testowy albo fałszywy wpis). Wymaga osobnego klucza admina w
+        nagłówku <code>Authorization: Bearer &lt;klucz&gt;</code> albo <code>X-API-Key</code>. Klucz do
+        zapisu wyników nie pozwala usuwać.
+      </p>
+      <p className="mt-2 text-sm">
+        Odpowiedź <code>200</code> z usuniętym wpisem, <code>404</code> gdy go nie ma, <code>400</code> przy
+        złym <code>id</code> albo <code>401</code> bez klucza admina.
+      </p>
     </main>
   );
 }

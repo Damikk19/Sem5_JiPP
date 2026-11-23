@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:init": "node --env-file=.env.local scripts/db-init.mjs"
+    "db:init": "node --env-file=.env.local scripts/db-init.mjs",
+    "usun": "node --env-file=.env.local scripts/usun-wynik.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.1",

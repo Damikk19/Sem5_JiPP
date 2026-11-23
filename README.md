@@ -35,12 +35,15 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 
 `GET /api/scores?sort=latest&limit=1` zwraca ostatnią grę (pasek „ostatnia gra” na stronie).
 
+`DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku, bo klucz do zapisu ma tylko dopisywać. Lokalnie: `npm run usun -- <id>`.
+
 `id` i `timestamp` nadaje baza, bo micro:bit nie ma zegara ani generatora UUID.
 
 ## Kod
 
 - `app/api/scores/route.ts` - GameController (POST, GET)
-- `lib/auth.ts` - sprawdza klucz API przy zapisie
+- `app/api/scores/[id]/route.ts` - usuwanie wyniku (DELETE)
+- `lib/auth.ts` - klucze: `API_TOKEN` do zapisu, `ADMIN_TOKEN` do usuwania
 - `lib/scoreValidator.ts` - sprawdza body od bramki
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
 - `app/leaderboard.tsx` - ranking na stronie, odświeżany co 2 s, nowy wynik miga
@@ -53,6 +56,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 npm install
 echo 'DATABASE_URL=postgres://...' >> .env.local
 echo 'API_TOKEN=dowolny-dlugi-klucz' >> .env.local
+echo 'ADMIN_TOKEN=inny-dlugi-klucz' >> .env.local
 npm run db:init
 npm run dev
 ```
