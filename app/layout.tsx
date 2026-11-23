@@ -14,8 +14,18 @@ const pixel = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "RAM ATAK · ranking",
+  metadataBase: new URL("https://sem5-jipp.vercel.app"),
+  title: "RAM INVADERS · ranking",
   description: "Gra na micro:bicie z rankingiem online (projekt JiPP)",
+  openGraph: {
+    title: "RAM INVADERS · ranking",
+    description: "Gra na micro:bicie z rankingiem online (projekt JiPP)",
+    url: "/",
+    siteName: "RAM INVADERS",
+    locale: "pl_PL",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

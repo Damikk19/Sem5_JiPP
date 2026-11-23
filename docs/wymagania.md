@@ -1,6 +1,6 @@
 # Wymagania i struktury danych
 
-System rankingu gry RAM ATAK na micro:bicie. Dokument uzupełnia diagram C4 (`c4-ranking.pdf`): C4 pokazuje, z czego system jest zbudowany, a tutaj jest opisane, co ma robić i jakie dane przepływają między częściami.
+System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 (`c4-ranking.pdf`): C4 pokazuje, z czego system jest zbudowany, a tutaj jest opisane, co ma robić i jakie dane przepływają między częściami.
 
 ## Aktorzy
 

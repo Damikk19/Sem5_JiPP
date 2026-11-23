@@ -231,6 +231,53 @@ body::after {
   .sterowanie, .stopka { font-size: 8px; }
 }
 
+/* ---------- Duży ekran (projektor, monitor): układ w dwóch kolumnach i powiększenie ---------- */
+/* Lewa kolumna: tytuł, HI-SCORE, sterowanie. Prawa: tabela. Powiększenie w krokach, żeby pixelowy font był ostry. */
+
+@media (min-width: 1250px) and (min-height: 760px) {
+  .ekran {
+    --zoom: 1;
+    zoom: var(--zoom);
+    max-width: none;
+    width: max-content;
+    /* 100vh po powiększeniu, żeby całość mieściła się na jednym ekranie */
+    min-height: calc(100vh / var(--zoom));
+    padding: 24px 0;
+    display: grid;
+    grid-template-columns: 440px 480px;
+    grid-template-rows: 1fr auto auto auto auto 1fr;
+    grid-template-areas:
+      ". tabela"
+      "tytul tabela"
+      "hud tabela"
+      "sterowanie tabela"
+      "stopka tabela"
+      ". tabela";
+    column-gap: 96px;
+  }
+
+  .tytul h1 { white-space: nowrap; }
+  .ranking { display: contents; }
+  .tytul { grid-area: tytul; }
+  .hud { grid-area: hud; margin-top: 36px; }
+  .tabela { grid-area: tabela; align-self: center; }
+  .tabela .naglowek { margin-top: 0; }
+  .sterowanie { grid-area: sterowanie; }
+  .stopka { grid-area: stopka; }
+}
+
+@media (min-width: 1500px) and (min-height: 960px) {
+  .ekran { --zoom: 1.25; }
+}
+
+@media (min-width: 1800px) and (min-height: 1050px) {
+  .ekran { --zoom: 1.5; }
+}
+
+@media (min-width: 2400px) and (min-height: 1400px) {
+  .ekran { --zoom: 2; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dioda.klatka-a,
   .dioda.klatka-b,

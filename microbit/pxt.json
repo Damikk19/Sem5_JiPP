@@ -1,5 +1,5 @@
 {
-    "name": "RAM ATAK",
+    "name": "RAM INVADERS",
     "description": "Strzelanka na micro:bita: zestrzel spadające kości RAM. Projekt JiPP.",
     "dependencies": {
         "core": "*",

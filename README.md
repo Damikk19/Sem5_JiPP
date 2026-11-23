@@ -50,7 +50,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
 - `app/leaderboard.tsx` - ranking na stronie, odświeżany co 2 s, nowy wynik miga
 - `db/schema.sql` - tabela `scores`
-- `microbit/main.ts` - gra RAM ATAK w MakeCode (opis w `microbit/README.md`)
+- `microbit/main.ts` - gra RAM INVADERS w MakeCode (opis w `microbit/README.md`)
 
 ## Testy i CI
 

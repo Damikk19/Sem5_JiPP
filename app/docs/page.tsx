@@ -5,7 +5,7 @@ export default function Docs() {
   return (
     <main className="dokumentacja">
       <Link href="/" className="powrot">&lt; RANKING</Link>
-      <h1 className="swieci">RAM ATAK API</h1>
+      <h1 className="swieci">RAM INVADERS API</h1>
       <p className="wstep">
         Projekt JiPP: gra na micro:bicie, wynik przez bramkę radiową trafia do tego API i do bazy.
       </p>

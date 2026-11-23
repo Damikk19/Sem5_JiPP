@@ -1,4 +1,4 @@
-# RAM ATAK (micro:bit)
+# RAM INVADERS (micro:bit)
 
 Strzelanka na micro:bita: z góry spadają kości RAM, a Ty strzelasz do nich ze statku w dolnym rzędzie. Po grze wybierasz nick z 3 liter i wynik leci radiem do bramki prowadzącego, a z niej do naszego API.
 
@@ -31,7 +31,7 @@ Bramka prowadzącego zamienia ją na `POST /api/scores` z body `{ "id": "ABC", "
 
 ## Wgranie bez internetu
 
-`ram-atak.hex` to gotowa gra (uniwersalny plik dla micro:bita V1 i V2). Podłącz micro:bita kablem USB i przeciągnij plik na dysk **MICROBIT**.
+`ram-invaders.hex` to gotowa gra (uniwersalny plik dla micro:bita V1 i V2). Podłącz micro:bita kablem USB i przeciągnij plik na dysk **MICROBIT**.
 
 Po zmianie `main.ts` plik trzeba pobrać z MakeCode od nowa (Pobierz → Pobierz jako plik).
 

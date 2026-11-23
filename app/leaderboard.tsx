@@ -78,7 +78,7 @@ export default function Leaderboard() {
   const wiersze = Array.from({ length: TOP }, (_, i) => top[i] ?? null);
 
   return (
-    <section>
+    <section className="ranking">
       <div className="hud">
         <div>
           <p className="etykieta">LAST</p>
@@ -94,44 +94,46 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      <h2 className="naglowek swieci">HIGH SCORES</h2>
+      <div className="tabela">
+        <h2 className="naglowek swieci">HIGH SCORES</h2>
 
-      <table className="wyniki">
-        <thead>
-          <tr>
-            <th className="rank">RANK</th>
-            <th className="score">SCORE</th>
-            <th className="name">NAME</th>
-          </tr>
-        </thead>
-        <tbody>
-          {wiersze.map((wynik, i) =>
-            wynik ? (
-              <tr
-                key={wynik.id}
-                className={`swieci ${wynik.id === freshId ? "miga-nowy" : ""}`}
-                style={{ color: KOLORY[i % KOLORY.length] }}
-              >
-                <td className="rank">{miejsce(i + 1)}</td>
-                <td className="score">{punkty(wynik.score)}</td>
-                <td className="name">{wynik.playerId}</td>
-              </tr>
-            ) : (
-              <tr key={`pusty-${i}`} className="pusty">
-                <td className="rank">{miejsce(i + 1)}</td>
-                <td className="score">{punkty(0)}</td>
-                <td className="name">---</td>
-              </tr>
-            ),
-          )}
-        </tbody>
-      </table>
+        <table className="wyniki">
+          <thead>
+            <tr>
+              <th className="rank">RANK</th>
+              <th className="score">SCORE</th>
+              <th className="name">NAME</th>
+            </tr>
+          </thead>
+          <tbody>
+            {wiersze.map((wynik, i) =>
+              wynik ? (
+                <tr
+                  key={wynik.id}
+                  className={`swieci ${wynik.id === freshId ? "miga-nowy" : ""}`}
+                  style={{ color: KOLORY[i % KOLORY.length] }}
+                >
+                  <td className="rank">{miejsce(i + 1)}</td>
+                  <td className="score">{punkty(wynik.score)}</td>
+                  <td className="name">{wynik.playerId}</td>
+                </tr>
+              ) : (
+                <tr key={`pusty-${i}`} className="pusty">
+                  <td className="rank">{miejsce(i + 1)}</td>
+                  <td className="score">{punkty(0)}</td>
+                  <td className="name">---</td>
+                </tr>
+              ),
+            )}
+          </tbody>
+        </table>
 
-      <p className={`zacheta swieci ${status === "offline" ? "alarm" : ""}`} aria-live="polite">
-        {status === "loading" && "WCZYTYWANIE..."}
-        {status === "offline" && "BRAK SYGNAŁU Z SERWERA"}
-        {status === "live" && (top.length === 0 ? "ZAGRAJ PIERWSZY NA MICRO:BICIE" : "GRAJ NA MICRO:BICIE")}
-      </p>
+        <p className={`zacheta swieci ${status === "offline" ? "alarm" : ""}`} aria-live="polite">
+          {status === "loading" && "WCZYTYWANIE..."}
+          {status === "offline" && "BRAK SYGNAŁU Z SERWERA"}
+          {status === "live" && (top.length === 0 ? "ZAGRAJ PIERWSZY NA MICRO:BICIE" : "GRAJ NA MICRO:BICIE")}
+        </p>
+      </div>
     </section>
   );
 }

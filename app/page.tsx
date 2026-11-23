@@ -7,7 +7,7 @@ export default function Home() {
     <main className="ekran">
       <header className="tytul">
         <RamSprite />
-        <h1 className="swieci">RAM ATAK</h1>
+        <h1 className="swieci">RAM INVADERS</h1>
       </header>
 
       <Leaderboard />

@@ -1,4 +1,4 @@
-"""Symulacja tempa RAM ATAK: logika gry z main.ts przepisana na Pythona + boty o różnym refleksie.
+"""Symulacja tempa RAM INVADERS: logika gry z main.ts przepisana na Pythona + boty o różnym refleksie.
 Pokazuje, ile trwa partia i jakie są wyniki przy danych ustawieniach tempa.
 Tymi pomiarami dobrałem tempo w grze (przeciętna partia ok. minuty).
 Uruchomienie: python3 symulacja_tempa.py"""

@@ -1,4 +1,4 @@
-// RAM ATAK: strzelanka na micro:bita (projekt JiPP)
+// RAM INVADERS: strzelanka na micro:bita (projekt JiPP)
 //
 // Z góry spadają kości RAM, a Ty strzelasz do nich ze statku w dolnym rzędzie.
 // A = w lewo, B = w prawo, A+B = strzał (na ekranie może być jeden pocisk naraz).
@@ -360,7 +360,7 @@ function klatkaRamu() {
 // Dzięki temu animacje nie nachodzą na siebie.
 basic.forever(function () {
     if (stan == INTRO) {
-        basic.showString("RAM ATAK")
+        przewin("RAM INVADERS")
         stan = TYTUL
     } else if (stan == TYTUL) {
         klatkaRamu()
