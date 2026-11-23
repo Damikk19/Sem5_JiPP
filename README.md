@@ -21,11 +21,13 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 { "id": "ABC", "wynik": 50 }
 ```
 
+Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nagłówek `Authorization: Bearer <klucz>`, `X-API-Key: <klucz>` albo `?key=<klucz>` w adresie. Klucz jest w zmiennej `API_TOKEN` na Vercelu, nie w repo. Bez klucza: `401`.
+
 - `id` to identyfikator gracza (nick), 1–32 znaki
 - `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst, np. `"50"`)
-- odpowiedź `201` z zapisanym wynikiem albo `400` z opisem błędu
+- odpowiedź `201` z zapisanym wynikiem, `400` z opisem błędu albo `401` bez klucza
 
-`GET /api/scores?limit=10` zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
+`GET /api/scores?limit=10` (publiczny, bez klucza) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
 
 ```json
 [{ "id": "uuid", "playerId": "ABC", "score": 50, "timestamp": "2026-11-23T12:00:00.000Z" }]
@@ -38,6 +40,7 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 ## Kod
 
 - `app/api/scores/route.ts` - GameController (POST, GET)
+- `lib/auth.ts` - sprawdza klucz API przy zapisie
 - `lib/scoreValidator.ts` - sprawdza body od bramki
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
 - `app/leaderboard.tsx` - ranking na stronie, odświeżany co 2 s, nowy wynik miga
@@ -48,7 +51,8 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 
 ```
 npm install
-echo 'DATABASE_URL=postgres://...' > .env.local
+echo 'DATABASE_URL=postgres://...' >> .env.local
+echo 'API_TOKEN=dowolny-dlugi-klucz' >> .env.local
 npm run db:init
 npm run dev
 ```

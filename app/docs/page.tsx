@@ -16,7 +16,12 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p className="mt-2 text-sm">
-        Odpowiedź <code>201</code> z zapisanym wynikiem albo <code>400</code> z opisem błędu.
+        Wymaga klucza API: nagłówek <code>Authorization: Bearer &lt;klucz&gt;</code> (albo{" "}
+        <code>X-API-Key: &lt;klucz&gt;</code>, albo <code>?key=&lt;klucz&gt;</code> w adresie).
+      </p>
+      <p className="mt-2 text-sm">
+        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>400</code> z opisem błędu danych albo{" "}
+        <code>401</code> bez poprawnego klucza.
       </p>
 
       <h2 className="mt-8 font-semibold">GET /api/scores?limit=10</h2>
