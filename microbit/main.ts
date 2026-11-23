@@ -132,7 +132,7 @@ function strzel() {
     pocisk = game.createSprite(gracz.get(LedSpriteProperty.X), 3)
     pocisk.set(LedSpriteProperty.Brightness, 255)
     ostatniRuchPocisku = input.runningTime()
-    music.play(music.tonePlayable(880, music.beat(BeatFraction.Sixteenth)), music.PlaybackMode.InBackground)
+    dzwiek(880, 40)
     sprawdzTrafienia()
 }
 
@@ -196,7 +196,7 @@ function trafienie(ram4: game.LedSprite) {
     if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5) {
         // Pierwsze trafienie w DDR5 tylko ją uszkadza
         ram4.set(LedSpriteProperty.Brightness, JASNOSC_DDR5_USZKODZONA)
-        music.play(music.tonePlayable(330, music.beat(BeatFraction.Sixteenth)), music.PlaybackMode.InBackground)
+        dzwiek(330, 40)
         return
     }
     if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5_USZKODZONA) {
@@ -205,7 +205,7 @@ function trafienie(ram4: game.LedSprite) {
         wynik += 1
     }
     ram4.delete()
-    music.play(music.tonePlayable(1320, music.beat(BeatFraction.Sixteenth)), music.PlaybackMode.InBackground)
+    dzwiek(1320, 40)
     // Z każdą zestrzeloną kością gra przyspiesza (tempo dobrane symulacją: partia trwa ok. minuty)
     tempoSpadania = Math.max(300, tempoSpadania - 7)
     tempoPojawiania = Math.max(650, tempoPojawiania - 12)
@@ -213,7 +213,7 @@ function trafienie(ram4: game.LedSprite) {
 
 function stracZycie() {
     zycia += -1
-    music.play(music.tonePlayable(131, music.beat(BeatFraction.Quarter)), music.PlaybackMode.InBackground)
+    dzwiek(131, 150)
     if (zycia <= 0) {
         stan = KONIEC
     } else {
@@ -252,7 +252,7 @@ function koniecGry() {
     // Silnik gier odświeża ekran co 30 ms, więc wstrzymujemy go, żeby nie zamazał napisów
     game.pause()
     basic.clearScreen()
-    music.play(music.builtInPlayableMelody(Melodies.Wawawawaa), music.PlaybackMode.InBackground)
+    music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
     basic.showIcon(IconNames.Sad)
     basic.pause(600)
     basic.showString("" + wynik)
@@ -331,3 +331,10 @@ basic.forever(function () {
         basic.pause(50)
     }
 })
+
+// Krótki dźwięk bez zatrzymywania gry
+function dzwiek(czestotliwosc: number, czas: number) {
+    control.inBackground(function () {
+        music.playTone(czestotliwosc, czas)
+    })
+}

@@ -27,10 +27,18 @@ Bramka prowadzącego zamienia ją na `POST /api/scores` z body `{ "id": "ABC", "
 
 **Do potwierdzenia z prowadzącym:** grupa radia (`GRUPA_RADIA`, teraz 1), identyfikator naszego API (`ID_API`, teraz `DK`) i format ramki. Wszystko jest na górze `main.ts`.
 
-## Jak otworzyć
+## Wgranie bez internetu
+
+`ram-atak.hex` to gotowa gra (uniwersalny plik dla micro:bita V1 i V2). Podłącz micro:bita kablem USB i przeciągnij plik na dysk **MICROBIT**.
+
+Po zmianie `main.ts` plik trzeba pobrać z MakeCode od nowa (Pobierz → Pobierz jako plik).
+
+## Jak otworzyć w MakeCode
 
 1. https://makecode.microbit.org → Nowy projekt → JavaScript
 2. wklej zawartość `main.ts` (MakeCode sam doda pakiet radia)
 3. gra działa od razu w symulatorze, a **Pobierz** wgrywa ją na micro:bita przez USB
 
-Kod da się przełączyć na bloki. Szare zostają tylko dwa bloki od szybkiego wyświetlania liter nicku.
+Kod da się przełączyć na bloki. Szare zostają 3 bloki: szybkie wyświetlanie liter nicku i dźwięk w tle.
+
+Dźwięki używają klasycznego `music.playTone` zamiast nowego `music.play`, bo z nowym API program nie mieścił się na micro:bicie V1.
