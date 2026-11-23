@@ -82,35 +82,37 @@ export default function Leaderboard() {
         </div>
       )}
 
-      <table className="mt-6 w-full table-fixed border-collapse">
-        <thead>
-          <tr className="text-left text-xs uppercase tracking-widest text-[var(--muted)]">
-            <th className="w-12 pb-3 font-normal">#</th>
-            <th className="pb-3 font-normal">Gracz</th>
-            <th className="w-28 pb-3 text-right font-normal">Wynik</th>
-            <th className="hidden w-36 pb-3 text-right font-normal sm:table-cell">Kiedy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {top.map((s, i) => (
-            <tr
-              key={s.id}
-              className={`border-t border-[var(--line)] ${s.id === freshId ? "flash" : ""}`}
-            >
-              <td className={`py-3 font-pixel text-sm ${rankColor(i)}`}>{i + 1}</td>
-              <td className={`truncate py-3 font-semibold ${i === 0 ? "text-[var(--gold)]" : ""}`}>
-                {s.playerId}
-              </td>
-              <td className="py-3 text-right tabular-nums">
-                <PaddedScore value={s.score} />
-              </td>
-              <td className="hidden py-3 text-right text-sm text-[var(--muted)] sm:table-cell">
-                {ago(s.timestamp, now)}
-              </td>
+      {top.length > 0 && (
+        <table className="mt-6 w-full table-fixed border-collapse">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-widest text-[var(--muted)]">
+              <th className="w-12 pb-3 font-normal">#</th>
+              <th className="pb-3 font-normal">Gracz</th>
+              <th className="w-28 pb-3 text-right font-normal">Wynik</th>
+              <th className="hidden w-36 pb-3 text-right font-normal sm:table-cell">Kiedy</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {top.map((s, i) => (
+              <tr
+                key={s.id}
+                className={`border-t border-[var(--line)] ${s.id === freshId ? "flash" : ""}`}
+              >
+                <td className={`py-3 font-pixel text-sm ${rankColor(i)}`}>{i + 1}</td>
+                <td className={`truncate py-3 font-semibold ${i === 0 ? "text-[var(--gold)]" : ""}`}>
+                  {s.playerId}
+                </td>
+                <td className="py-3 text-right tabular-nums">
+                  <PaddedScore value={s.score} />
+                </td>
+                <td className="hidden py-3 text-right text-sm text-[var(--muted)] sm:table-cell">
+                  {ago(s.timestamp, now)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {status === "live" && top.length === 0 && (
         <p className="mt-10 text-center text-[var(--muted)]">
