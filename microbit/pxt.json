@@ -1,0 +1,17 @@
+{
+    "name": "RAM ATAK",
+    "description": "Strzelanka na micro:bita: zestrzel spadające kości RAM. Projekt JiPP.",
+    "dependencies": {
+        "core": "*",
+        "radio": "*",
+        "microphone": "*"
+    },
+    "files": [
+        "main.ts",
+        "README.md"
+    ],
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
+}

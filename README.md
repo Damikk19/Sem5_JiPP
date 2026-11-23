@@ -42,6 +42,7 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
 - `app/leaderboard.tsx` - ranking na stronie, odświeżany co 2 s, nowy wynik miga
 - `db/schema.sql` - tabela `scores`
+- `microbit/main.ts` - gra RAM ATAK w MakeCode (opis w `microbit/README.md`)
 
 ## Uruchomienie lokalnie
 
@@ -56,5 +57,5 @@ npm run dev
 
 - [x] API + baza
 - [x] strona z rankingiem
-- [ ] gra w MakeCode
+- [x] gra w MakeCode (do potwierdzenia: grupa radia i format ramki)
 - [ ] wyświetlacz fizyczny
