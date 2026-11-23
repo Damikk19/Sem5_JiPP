@@ -1,5 +1,7 @@
 # Sem5_JiPP
 
+[![CI](https://github.com/Damikk19/Sem5_JiPP/actions/workflows/ci.yml/badge.svg)](https://github.com/Damikk19/Sem5_JiPP/actions/workflows/ci.yml)
+
 Gra zręcznościowa na micro:bicie. Po grze wynik i nick gracza trafiają do bazy, a ranking widać na stronie i na fizycznym wyświetlaczu.
 
 Na żywo: https://sem5-jipp.vercel.app · API: https://sem5-jipp.vercel.app/api/scores
@@ -50,6 +52,21 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 - `db/schema.sql` - tabela `scores`
 - `microbit/main.ts` - gra RAM ATAK w MakeCode (opis w `microbit/README.md`)
 
+## Testy i CI
+
+`npm test` uruchamia testy (Vitest):
+
+- `tests/scoreValidator.test.ts` - umowa z bramką: format `{ id, wynik }`, granice zakresu, wynik jako tekst
+- `tests/auth.test.ts` - klucze: brak klucza na serwerze blokuje operację, klucz bramki nie usuwa, klucz admina nie działa w adresie
+- `tests/api.test.ts` - kody odpowiedzi API i to, że bez klucza nic nie trafia do bazy
+- `tests/scoreRepository.test.ts` - prawdziwe zapytania SQL na Postgresie w pamięci (PGlite) z tym samym `db/schema.sql`: kolejność rankingu, remisy, `CHECK`
+
+Testy sprawdziłem, celowo psując kod (m.in. usunięcie sprawdzania klucza, odwrócony remis, zła granica wyniku). Każdą taką zmianę wykrywają.
+
+GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu sprawdza lint, typy, testy i build. Wdrożenie (CD) robi Vercel po pushu na `main`.
+
+Gry na micro:bicie nie da się testować w Node (to kod MakeCode), więc testowałem ją w symulatorze MakeCode.
+
 ## Uruchomienie lokalnie
 
 ```
@@ -59,6 +76,7 @@ echo 'API_TOKEN=dowolny-dlugi-klucz' >> .env.local
 echo 'ADMIN_TOKEN=inny-dlugi-klucz' >> .env.local
 npm run db:init
 npm run dev
+npm test
 ```
 
 ## Status

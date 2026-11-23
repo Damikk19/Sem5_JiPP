@@ -1,0 +1,38 @@
+# CI: przy każdym pushu i pull requeście sprawdza lint, typy, testy i build.
+# CD robi Vercel: po pushu na main sam buduje i wdraża nową wersję.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sprawdzenie:
+    name: Lint, typy, testy, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalacja zależności
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typy (TypeScript)
+        run: npx next typegen && npx tsc --noEmit
+
+      - name: Testy
+        run: npm test
+
+      - name: Build
+        run: npm run build
