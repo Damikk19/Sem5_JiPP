@@ -13,7 +13,7 @@ Strzelanka na micro:bita: z góry spadają kości RAM, a Ty strzelasz do nich ze
 - **DDR4** (przygaszona dioda): 1 trafienie, 1 pkt
 - **DDR5** (jasna dioda): 2 trafienia (po pierwszym przygasa), 3 pkt. Pojawia się coraz częściej.
 - Kość, która doleci do dolnego rzędu, zabiera życie. Są 3 życia, a jasność statku pokazuje, ile zostało.
-- Każda zestrzelona kość przyspiesza grę. Tempo jest dobrane symulacją: przeciętna partia trwa ok. minuty.
+- Każda zestrzelona kość przyspiesza grę. Tempo jest dobrane symulacją (`symulacja_tempa.py`: logika gry w Pythonie + boty o różnym refleksie): przeciętna partia trwa ok. minuty.
 - **Potrząśnięcie = Garbage Collector** (raz na grę): ekran „skanuje pamięć” od góry do dołu, gra na chwilę staje jak przy GC typu stop-the-world i znikają wszystkie kości. Punktów za to nie ma, to koło ratunkowe.
 - Kiedy kość „wycieknie” na dół, ekran krótko błyska. Po trzeciej przegrana kończy się napisem **OUT OF MEMORY**.
 
