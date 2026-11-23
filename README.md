@@ -2,6 +2,8 @@
 
 Gra zręcznościowa na micro:bicie. Po grze wynik i nick gracza trafiają do bazy, a ranking widać na stronie i na fizycznym wyświetlaczu.
 
+Na żywo: https://sem5-jipp.vercel.app · API: https://sem5-jipp.vercel.app/api/scores
+
 ## Jak to działa
 
 ```
