@@ -249,7 +249,7 @@ function jasnoscGracza() {
     return 25
 }
 
-// Garbage Collector: ekran „skanuje pamięć” od góry do dołu, a potem znikają wszystkie kości.
+// Garbage Collector: ekran "skanuje pamięć" od góry do dołu, a potem znikają wszystkie kości.
 // Gra na chwilę staje, jak przy prawdziwym GC typu stop-the-world. Punktów za to nie ma.
 function odpalGC() {
     game.pause()
@@ -272,7 +272,7 @@ function odpalGC() {
     ostatnieSpadanie = input.runningTime()
 }
 
-// Krótki błysk całego ekranu, kiedy kość „wycieknie” na dół
+// Krótki błysk całego ekranu, kiedy kość "wycieknie" na dół
 function blysk() {
     game.pause()
     for (let y2 = 0; y2 <= 4; y2++) {
@@ -285,7 +285,7 @@ function blysk() {
     game.resume()
 }
 
-// Przewija tekst szybciej niż domyślnie (domyślne „OUT OF MEMORY” trwałoby ok. 12 s)
+// Przewija tekst szybciej niż domyślnie (domyślne "OUT OF MEMORY" trwałoby ok. 12 s)
 function przewin(tekst: string) {
     basic.showString(tekst, 80)
 }
