@@ -38,8 +38,8 @@ let pozycjaNicku = 0
 let ramy: game.LedSprite[] = []
 let zycia = 3
 let wynik = 0
-let tempoSpadania = 800
-let tempoPojawiania = 1400
+let tempoSpadania = 900
+let tempoPojawiania = 1600
 let ostatnieSpadanie = 0
 let ostatniePojawienie = 0
 let ostatniRuchPocisku = 0
@@ -93,8 +93,8 @@ function nowaGra() {
     basic.clearScreen()
     zycia = 3
     wynik = 0
-    tempoSpadania = 800
-    tempoPojawiania = 1400
+    tempoSpadania = 900
+    tempoPojawiania = 1600
     ramy = []
     game.resume()
     gracz = game.createSprite(2, 4)
@@ -175,6 +175,8 @@ function nowyRam() {
         nowy.set(LedSpriteProperty.Brightness, JASNOSC_DDR4)
     }
     ramy.push(nowy)
+    // Kość mogła pojawić się dokładnie tam, gdzie leci pocisk
+    sprawdzTrafienia()
 }
 
 function sprawdzTrafienia() {
@@ -204,9 +206,9 @@ function trafienie(ram4: game.LedSprite) {
     }
     ram4.delete()
     music.play(music.tonePlayable(1320, music.beat(BeatFraction.Sixteenth)), music.PlaybackMode.InBackground)
-    // Z każdą zestrzeloną kością gra przyspiesza
-    tempoSpadania = Math.max(250, tempoSpadania - 12)
-    tempoPojawiania = Math.max(500, tempoPojawiania - 20)
+    // Z każdą zestrzeloną kością gra przyspiesza (tempo dobrane symulacją: partia trwa ok. minuty)
+    tempoSpadania = Math.max(300, tempoSpadania - 7)
+    tempoPojawiania = Math.max(650, tempoPojawiania - 12)
 }
 
 function stracZycie() {
