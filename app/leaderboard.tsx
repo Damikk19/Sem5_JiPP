@@ -1,13 +1,16 @@
 "use client";
 
-// Ranking na żywo: co 2 sekundy pyta API o top 10 i ostatnią grę.
-// Nowy wynik miga, żeby przy teście z bramką od razu było go widać.
+// Ranking na żywo: co 2 sekundy pyta API o TOP 10 i ostatnią grę.
+// Wygląd jak tablica HIGH SCORES na automacie. Tabela ma zawsze 10 wierszy,
+// więc nic nie skacze, kiedy pojawia się pierwszy wynik. Nowy wynik miga.
 import { useEffect, useRef, useState } from "react";
 import { MAX_SCORE, type Score } from "@/lib/score";
 
 const REFRESH_MS = 2000;
 const TOP = 10;
-const SCORE_DIGITS = String(MAX_SCORE).length;
+const CYFRY = String(MAX_SCORE).length;
+// Kolory kolejnych miejsc, jak na starych automatach
+const KOLORY = ["var(--led)", "var(--orange)", "var(--yellow)", "var(--green)", "var(--cyan)"];
 
 type Status = "loading" | "live" | "offline";
 
@@ -17,12 +20,22 @@ async function getScores(query: string): Promise<Score[]> {
   return res.json();
 }
 
+function punkty(wynik: number) {
+  return String(wynik).padStart(CYFRY, "0");
+}
+
+function miejsce(n: number) {
+  if (n === 1) return "1ST";
+  if (n === 2) return "2ND";
+  if (n === 3) return "3RD";
+  return `${n}TH`;
+}
+
 export default function Leaderboard() {
   const [top, setTop] = useState<Score[]>([]);
   const [last, setLast] = useState<Score | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [freshId, setFreshId] = useState<string | null>(null);
-  const [now, setNow] = useState(0);
   const lastId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -47,7 +60,6 @@ export default function Leaderboard() {
           setTop(best);
           setLast(newest);
           setStatus("live");
-          setNow(Date.now());
         } catch {
           if (!stopped) setStatus("offline");
         }
@@ -62,104 +74,64 @@ export default function Leaderboard() {
     };
   }, []);
 
+  const rekord = top[0];
+  const wiersze = Array.from({ length: TOP }, (_, i) => top[i] ?? null);
+
   return (
-    <section className="mt-8">
-      <StatusLine status={status} />
-
-      {last && (
-        <div
-          key={last.id}
-          className={`mt-4 rounded border border-[var(--line)] px-4 py-3 sm:flex sm:items-baseline sm:gap-6 ${
-            last.id === freshId ? "flash" : ""
-          }`}
-        >
-          <span className="shrink-0 text-xs uppercase tracking-widest text-[var(--muted)]">Ostatnia gra</span>
-          <span className="mt-1 flex min-w-0 flex-1 items-baseline gap-2 sm:mt-0">
-            <span className="min-w-0 truncate font-semibold">{last.playerId}</span>
-            <span className="shrink-0 tabular-nums">{last.score} pkt</span>
-            <span className="ml-auto shrink-0 text-sm text-[var(--muted)]">{ago(last.timestamp, now)}</span>
-          </span>
+    <section>
+      <div className="hud">
+        <div>
+          <p className="etykieta">LAST</p>
+          <p className={`wartosc swieci ${last && last.id === freshId ? "miga-nowy" : ""}`} key={last?.id}>
+            {last ? `${last.playerId} ${punkty(last.score)}` : `--- ${punkty(0)}`}
+          </p>
         </div>
-      )}
+        <div>
+          <p className="etykieta">HI-SCORE</p>
+          <p className={`wartosc swieci ${rekord && rekord.id === freshId ? "miga-nowy" : ""}`} key={rekord?.id}>
+            {punkty(rekord?.score ?? 0)}
+          </p>
+        </div>
+      </div>
 
-      {top.length > 0 && (
-        <table className="mt-6 w-full table-fixed border-collapse">
-          <thead>
-            <tr className="text-left text-xs uppercase tracking-widest text-[var(--muted)]">
-              <th className="w-12 pb-3 font-normal">#</th>
-              <th className="pb-3 font-normal">Gracz</th>
-              <th className="w-28 pb-3 text-right font-normal">Wynik</th>
-              <th className="hidden w-36 pb-3 text-right font-normal sm:table-cell">Kiedy</th>
-            </tr>
-          </thead>
-          <tbody>
-            {top.map((s, i) => (
+      <h2 className="naglowek swieci">HIGH SCORES</h2>
+
+      <table className="wyniki">
+        <thead>
+          <tr>
+            <th className="rank">RANK</th>
+            <th className="score">SCORE</th>
+            <th className="name">NAME</th>
+          </tr>
+        </thead>
+        <tbody>
+          {wiersze.map((wynik, i) =>
+            wynik ? (
               <tr
-                key={s.id}
-                className={`border-t border-[var(--line)] ${s.id === freshId ? "flash" : ""}`}
+                key={wynik.id}
+                className={`swieci ${wynik.id === freshId ? "miga-nowy" : ""}`}
+                style={{ color: KOLORY[i % KOLORY.length] }}
               >
-                <td className={`py-3 font-pixel text-sm ${rankColor(i)}`}>{i + 1}</td>
-                <td className={`truncate py-3 font-semibold ${i === 0 ? "text-[var(--gold)]" : ""}`}>
-                  {s.playerId}
-                </td>
-                <td className="py-3 text-right tabular-nums">
-                  <PaddedScore value={s.score} />
-                </td>
-                <td className="hidden py-3 text-right text-sm text-[var(--muted)] sm:table-cell">
-                  {ago(s.timestamp, now)}
-                </td>
+                <td className="rank">{miejsce(i + 1)}</td>
+                <td className="score">{punkty(wynik.score)}</td>
+                <td className="name">{wynik.playerId}</td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            ) : (
+              <tr key={`pusty-${i}`} className="pusty">
+                <td className="rank">{miejsce(i + 1)}</td>
+                <td className="score">{punkty(0)}</td>
+                <td className="name">---</td>
+              </tr>
+            ),
+          )}
+        </tbody>
+      </table>
 
-      {status === "live" && top.length === 0 && (
-        <p className="mt-10 text-center text-[var(--muted)]">
-          Brak wyników. Zagraj na micro:bicie i bądź pierwszy.
-        </p>
-      )}
+      <p className={`zacheta swieci ${status === "offline" ? "alarm" : ""}`} aria-live="polite">
+        {status === "loading" && "WCZYTYWANIE..."}
+        {status === "offline" && "BRAK SYGNAŁU Z SERWERA"}
+        {status === "live" && (top.length === 0 ? "ZAGRAJ PIERWSZY NA MICRO:BICIE" : "GRAJ NA MICRO:BICIE")}
+      </p>
     </section>
   );
-}
-
-function StatusLine({ status }: { status: Status }) {
-  const text = { loading: "Łączenie…", live: "Na żywo", offline: "Brak połączenia z API" }[status];
-  const dot = {
-    loading: "bg-[var(--muted)]",
-    live: "bg-[var(--live)] animate-pulse",
-    offline: "bg-[var(--led)]",
-  }[status];
-  return (
-    <p className="flex items-center gap-2 text-xs uppercase tracking-widest text-[var(--muted)]" aria-live="polite">
-      <span className={`inline-block h-2 w-2 rounded-full ${dot}`} />
-      {text}
-    </p>
-  );
-}
-
-// Wynik w stylu automatu: 00050, z przygaszonymi zerami z przodu.
-function PaddedScore({ value }: { value: number }) {
-  const digits = String(value);
-  const zeros = "0".repeat(Math.max(SCORE_DIGITS - digits.length, 0));
-  return (
-    <span className="font-pixel text-sm">
-      <span className="opacity-25">{zeros}</span>
-      {digits}
-    </span>
-  );
-}
-
-function rankColor(i: number) {
-  return ["text-[var(--gold)]", "text-[var(--silver)]", "text-[var(--bronze)]"][i] ?? "text-[var(--muted)]";
-}
-
-const relative = new Intl.RelativeTimeFormat("pl", { numeric: "auto" });
-
-function ago(timestamp: string, now: number) {
-  const seconds = Math.round((new Date(timestamp).getTime() - now) / 1000);
-  if (seconds > -45) return "przed chwilą";
-  if (seconds > -3600) return relative.format(Math.round(seconds / 60), "minute");
-  if (seconds > -86400) return relative.format(Math.round(seconds / 3600), "hour");
-  return new Date(timestamp).toLocaleDateString("pl-PL");
 }

@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
-/* Ciemny motyw jak na automacie, czerwień jak diody micro:bita. */
+/* Ekran automatu: czarne tło, pixelowy font, kolory jak diody micro:bita i stare automaty. */
 :root {
-  --background: #08080b;
-  --foreground: #ececf1;
-  --muted: #8a8a96;
-  --line: #24242c;
-  --led: #ff3b2f;
-  --live: #3ddc84;
-  --gold: #ffcc33;
-  --silver: #c9d1d9;
-  --bronze: #d98c5f;
+  --background: #000;
+  --foreground: #f4f1e8;
+  --muted: #8b8b8b;
+  --dim: #3b3b3b;
+  --led: #ff3c28;
+  --orange: #ff8a00;
+  --yellow: #ffe14d;
+  --green: #2ee86a;
+  --cyan: #3fd4ff;
 }
 
 @theme inline {
@@ -27,34 +27,275 @@ body {
   font-family: var(--font-mono-text), ui-monospace, monospace;
 }
 
-.led-on {
+/* Linie kineskopu i lekko przyciemnione rogi, nałożone na całą stronę */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.55) 100%);
+}
+
+/* ---------- Ekran rankingu ---------- */
+
+.ekran {
+  font-family: var(--font-press-start), monospace;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 16px 32px;
+  text-align: center;
+  line-height: 1.6;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+.swieci {
+  text-shadow: 0 0 6px currentColor;
+}
+
+.tytul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.tytul h1 {
+  margin: 0;
+  font-size: 32px;
+  color: var(--led);
+  letter-spacing: 2px;
+}
+
+/* Kość RAM z ekranu tytułowego gry: matryca 5x5 jak na micro:bicie */
+.matryca {
+  display: grid;
+  grid-template-columns: repeat(5, 12px);
+  gap: 5px;
+}
+
+.dioda {
+  width: 12px;
+  height: 12px;
+  background: #1c1c1c;
+}
+
+.dioda.zapalona {
   background: var(--led);
-  box-shadow: 0 0 6px var(--led);
+  box-shadow: 0 0 8px var(--led);
 }
 
-/* Nowy wynik miga na czerwono przez 3 sekundy. */
-.flash {
-  animation: flash 3s ease-out;
+/* Dwie klatki animacji jak w grze: środkowe kości „mrugają” na zmianę */
+.dioda.klatka-a {
+  animation: klatka-a 0.8s steps(1) infinite;
 }
 
-@keyframes flash {
-  0%,
-  20%,
-  40% {
-    background: color-mix(in srgb, var(--led) 35%, transparent);
-  }
-  10%,
-  30% {
-    background: transparent;
-  }
-  100% {
-    background: transparent;
-  }
+.dioda.klatka-b {
+  animation: klatka-b 0.8s steps(1) infinite;
+}
+
+@keyframes klatka-a {
+  0% { background: var(--led); box-shadow: 0 0 8px var(--led); }
+  50% { background: #1c1c1c; box-shadow: none; }
+}
+
+@keyframes klatka-b {
+  0% { background: #1c1c1c; box-shadow: none; }
+  50% { background: var(--led); box-shadow: 0 0 8px var(--led); }
+}
+
+/* Górny pasek jak na automacie: ostatnia gra i najlepszy wynik */
+.hud {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 480px;
+  margin: 36px auto 0;
+  font-size: 12px;
+}
+
+.hud p {
+  margin: 0;
+}
+
+.hud .etykieta {
+  color: var(--led);
+}
+
+.hud .wartosc {
+  margin-top: 6px;
+}
+
+.naglowek {
+  margin: 36px 0 20px;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--foreground);
+}
+
+.wyniki {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 16px;
+  table-layout: fixed;
+}
+
+.wyniki th {
+  font-weight: normal;
+  color: var(--foreground);
+  padding-bottom: 14px;
+}
+
+.wyniki td {
+  padding: 7px 0;
+}
+
+.wyniki .rank { width: 25%; text-align: left; }
+.wyniki .score { width: 35%; text-align: center; }
+.wyniki .name { width: 40%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.wyniki tr.pusty td {
+  color: var(--dim);
+  text-shadow: none;
+}
+
+/* Nowy wynik miga jak na automacie: twarde mignięcia, bez płynnego przejścia */
+.miga-nowy {
+  animation: miga 0.24s steps(1) 7;
+}
+
+@keyframes miga {
+  50% { visibility: hidden; }
+}
+
+.zacheta {
+  margin: 30px 0 0;
+  font-size: 12px;
+  color: var(--yellow);
+  animation: zacheta 1.2s steps(1) infinite;
+}
+
+.zacheta.alarm {
+  color: var(--led);
+}
+
+@keyframes zacheta {
+  70% { visibility: hidden; }
+}
+
+.sterowanie {
+  margin-top: 40px;
+  display: grid;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.sterowanie p {
+  margin: 0;
+}
+
+.sterowanie b {
+  font-weight: normal;
+  color: var(--foreground);
+}
+
+.stopka {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 10px;
+}
+
+.stopka a,
+.stopka span {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.stopka a:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 480px) {
+  .tytul h1 { font-size: 24px; }
+  .wyniki { font-size: 12px; }
+  .naglowek { font-size: 12px; }
+  .hud { font-size: 10px; }
+  .zacheta { font-size: 10px; }
+  .sterowanie, .stopka { font-size: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flash {
+  .dioda.klatka-a,
+  .dioda.klatka-b,
+  .miga-nowy,
+  .zacheta {
     animation: none;
-    background: color-mix(in srgb, var(--led) 15%, transparent);
   }
+}
+
+/* ---------- Opis API ---------- */
+
+.dokumentacja {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.dokumentacja h1,
+.dokumentacja .sekcja,
+.dokumentacja .powrot {
+  font-family: var(--font-press-start), monospace;
+  font-weight: normal;
+}
+
+.dokumentacja .powrot {
+  font-size: 10px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.dokumentacja .powrot:hover {
+  color: var(--foreground);
+}
+
+.dokumentacja h1 {
+  margin: 24px 0 8px;
+  font-size: 24px;
+  color: var(--led);
+}
+
+.dokumentacja .wstep {
+  color: var(--muted);
+}
+
+.dokumentacja .sekcja {
+  margin: 36px 0 12px;
+  font-size: 12px;
+  color: var(--yellow);
+}
+
+.dokumentacja p {
+  margin: 8px 0 0;
+}
+
+.dokumentacja pre {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  background: #111;
+  border-left: 4px solid var(--led);
+}
+
+.dokumentacja code {
+  color: var(--cyan);
 }

@@ -14,7 +14,7 @@ const pixel = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Ranking micro:bit",
+  title: "RAM ATAK · ranking",
   description: "Gra na micro:bicie z rankingiem online (projekt JiPP)",
 };
 
