@@ -5,6 +5,7 @@
 // DDR4 (przygaszona) pada po 1 trafieniu i daje 1 pkt.
 // DDR5 (jasna) potrzebuje 2 trafień i daje 3 pkt.
 // Kość, która doleci do dolnego rzędu, zabiera życie. Jasność statku = liczba żyć.
+// Potrząśnięcie = Garbage Collector: raz na grę czyści z ekranu wszystkie kości.
 // Po grze wybierasz nick z 3 liter (A/B zmienia literę, A+B zatwierdza),
 // a wynik leci radiem do bramki prowadzącego, która wysyła go do naszego API.
 
@@ -44,6 +45,8 @@ let ostatnieSpadanie = 0
 let ostatniePojawienie = 0
 let ostatniRuchPocisku = 0
 let klatkaTytulu = 0
+let gcDostepny = true
+let gcTeraz = false
 
 radio.setGroup(GRUPA_RADIA)
 radio.setTransmitPower(7)
@@ -87,6 +90,14 @@ input.onButtonPressed(Button.AB, function () {
     }
 })
 
+// Potrząśnięcie odpala Garbage Collector (raz na grę). Samo czyszczenie robi pętla gry.
+input.onGesture(Gesture.Shake, function () {
+    if (stan == GRA && gcDostepny) {
+        gcDostepny = false
+        gcTeraz = true
+    }
+})
+
 // ---------- Rozgrywka ----------
 
 function nowaGra() {
@@ -96,6 +107,8 @@ function nowaGra() {
     tempoSpadania = 900
     tempoPojawiania = 1600
     ramy = []
+    gcDostepny = true
+    gcTeraz = false
     game.resume()
     gracz = game.createSprite(2, 4)
     // Pocisk istnieje od startu, ale jest usunięty: usunięty = nie ma pocisku na ekranie
@@ -109,6 +122,10 @@ function nowaGra() {
 
 // Jeden krok gry, wołany w pętli co ~10 ms. Każdy element ma własne tempo.
 function krokGry() {
+    if (gcTeraz) {
+        gcTeraz = false
+        odpalGC()
+    }
     if (!(pocisk.isDeleted()) && input.runningTime() - ostatniRuchPocisku >= 70) {
         ostatniRuchPocisku = input.runningTime()
         ruchPocisku()
@@ -213,6 +230,7 @@ function trafienie(ram4: game.LedSprite) {
 
 function stracZycie() {
     zycia += -1
+    blysk()
     dzwiek(131, 150)
     if (zycia <= 0) {
         stan = KONIEC
@@ -229,6 +247,47 @@ function jasnoscGracza() {
         return 90
     }
     return 25
+}
+
+// Garbage Collector: ekran „skanuje pamięć” od góry do dołu, a potem znikają wszystkie kości.
+// Gra na chwilę staje, jak przy prawdziwym GC typu stop-the-world. Punktów za to nie ma.
+function odpalGC() {
+    game.pause()
+    dzwiek(660, 300)
+    for (let y = 0; y <= 4; y++) {
+        for (let x2 = 0; x2 <= 4; x2++) {
+            led.plotBrightness(x2, y, 160)
+        }
+        basic.pause(60)
+    }
+    for (let ram7 of ramy) {
+        ram7.delete()
+    }
+    pocisk.delete()
+    basic.pause(100)
+    basic.clearScreen()
+    game.resume()
+    // Chwila oddechu po czyszczeniu
+    ostatniePojawienie = input.runningTime()
+    ostatnieSpadanie = input.runningTime()
+}
+
+// Krótki błysk całego ekranu, kiedy kość „wycieknie” na dół
+function blysk() {
+    game.pause()
+    for (let y2 = 0; y2 <= 4; y2++) {
+        for (let x3 = 0; x3 <= 4; x3++) {
+            led.plotBrightness(x3, y2, 120)
+        }
+    }
+    basic.pause(120)
+    basic.clearScreen()
+    game.resume()
+}
+
+// Przewija tekst szybciej niż domyślnie (domyślne „OUT OF MEMORY” trwałoby ok. 12 s)
+function przewin(tekst: string) {
+    basic.showString(tekst, 80)
 }
 
 // Usuwa z listy kości, które zostały zestrzelone albo doleciały na dół
@@ -253,9 +312,8 @@ function koniecGry() {
     game.pause()
     basic.clearScreen()
     music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
-    basic.showIcon(IconNames.Sad)
-    basic.pause(600)
-    basic.showString("" + wynik)
+    przewin("OUT OF MEMORY")
+    przewin("" + wynik)
 }
 
 // ---------- Nick i wysyłka ----------
@@ -318,14 +376,14 @@ basic.forever(function () {
     } else if (stan == KONIEC) {
         koniecGry()
         pozycjaNicku = 0
-        basic.showString("NICK")
+        przewin("NICK")
         stan = WYBOR_NICKU
         pokazLitere()
     } else if (stan == WYSYLKA) {
         wyslijWynik(nickJakoTekst(), wynik)
         basic.showIcon(IconNames.Yes)
         basic.pause(500)
-        basic.showString(nickJakoTekst() + " " + wynik)
+        przewin(nickJakoTekst() + " " + wynik)
         stan = TYTUL
     } else {
         basic.pause(50)

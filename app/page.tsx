@@ -17,7 +17,10 @@ export default function Home() {
         </div>
         <div>
           <h1 className="font-pixel text-2xl tracking-wider sm:text-3xl">RANKING</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">Gra na micro:bicie · wyniki przez bramkę radiową</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">RAM ATAK na micro:bicie · wyniki przez bramkę radiową</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            A/B ruch · A+B strzał · potrząśnij: Garbage Collector (raz na grę)
+          </p>
         </div>
       </header>
 
