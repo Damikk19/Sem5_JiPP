@@ -6,6 +6,11 @@ import random
 import statistics
 
 DDR5, DDR5_U, DDR4 = 200, 90, 30
+# Pętla gry na micro:bicie: pause(10), potem 20 ms przerwy z basic.forever, a planista budzi wątek
+# w swoim takcie (6 ms na V1). Razem ok. 36 ms na jeden krok gry.
+KROK_PETLI = 36
+# Błysk po utracie życia: pętla stoi, a przyciski w grze nic nie robią
+BLYSK = 120
 
 
 class Gra:
@@ -22,16 +27,22 @@ class Gra:
         self.ramy = []  # [x, y, jasnosc]
         self.koniec = False
         self.zabite = 0
+        self.pauza_do = 0  # do kiedy trwa błysk
+
+    def pauza(self):
+        return self.t < self.pauza_do
 
     # --- akcje gracza ---
     def lewo(self):
-        self.px = max(0, self.px - 1)
+        if not self.pauza():
+            self.px = max(0, self.px - 1)
 
     def prawo(self):
-        self.px = min(4, self.px + 1)
+        if not self.pauza():
+            self.px = min(4, self.px + 1)
 
     def strzal(self):
-        if self.bullet is not None:
+        if self.pauza() or self.bullet is not None:
             return
         self.bullet = [self.px, 3]
         self.last_bullet = self.t
@@ -69,6 +80,7 @@ class Gra:
                 if r[1] == 4:
                     self.ramy.remove(r)
                     self.zycia -= 1
+                    self.pauza_do = max(self.pauza_do, self.t) + BLYSK
                     if self.zycia <= 0:
                         self.koniec = True
             self.hits()
@@ -82,15 +94,21 @@ class Gra:
 
 
 def partia(seed, reakcja=250, klik=180, klik_ab=260, **kw):
-    """Bot: widzi planszę z opóźnieniem `reakcja`, klika co `klik` ms (A+B wolniej)."""
+    """Bot: patrzy na aktualną planszę i celuje w najniższą kość. Po każdym naciśnięciu jest zajęty
+    przez `klik` ms (A+B: `klik_ab`) i jeszcze losowo do `reakcja` ms, zanim znów spojrzy. GC nie używa."""
     rng = random.Random(seed)
     g = Gra(rng, **kw)
     zajety_do = 0
+    nastepny_krok = 0
     while not g.koniec and g.t < 15 * 60 * 1000:
-        g.t += 10
-        g.krok()
-        if g.koniec:
-            break
+        g.t += 2
+        # Krok gry co KROK_PETLI ms, a po błysku dopiero wtedy, gdy pętla przestanie stać
+        if g.t >= nastepny_krok:
+            g.krok()
+            if g.koniec:
+                break
+            nastepny_krok = max(g.t, g.pauza_do) + KROK_PETLI
+        # Przyciski działają między krokami, bo ich obsługa nie czeka na pętlę gry
         if g.t < zajety_do:
             continue
         # cel: najniższa kość (najbliżej dna), przy remisie najbliższa kolumnie
@@ -119,7 +137,8 @@ def raport(nazwa, n=400, **kw):
 
 
 if __name__ == "__main__":
-    print("Ustawienia jak w main.ts (start 900/1600 ms, -7/-12 ms na kość, min 300/650 ms):")
+    print("Ustawienia jak w main.ts (start 900/1600 ms, -7/-12 ms na kość, min 300/650 ms,"
+          f" krok pętli {KROK_PETLI} ms, błysk {BLYSK} ms):")
     raport("  gracz szybki   (reakcja 150, klik 140)", reakcja=150, klik=140, klik_ab=200)
     raport("  gracz średni   (reakcja 250, klik 180)", reakcja=250, klik=180, klik_ab=260)
     raport("  gracz wolny    (reakcja 400, klik 250)", reakcja=400, klik=250, klik_ab=350)
