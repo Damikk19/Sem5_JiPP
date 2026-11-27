@@ -20,6 +20,11 @@ describe("walidacja wyniku od bramki", () => {
     expect(parse({ id: "  ABC ", wynik: 1 })).toEqual({ ok: true, dto: { playerId: "ABC", score: 1 } });
   });
 
+  // Bramka może dokleić koniec linii z ramki radiowej (jak przy wyniku "123\r\n")
+  it.each(["ABC\r\n", "ABC\n", "\tABC"])("obcina białe znaki wokół id przed sprawdzeniem znaków: %j", (id) => {
+    expect(parse({ id, wynik: "123\r\n" })).toEqual({ ok: true, dto: { playerId: "ABC", score: 123 } });
+  });
+
   it("ignoruje dodatkowe pola", () => {
     expect(parse({ id: "ABC", wynik: 1, apiId: "DK" }).ok).toBe(true);
   });

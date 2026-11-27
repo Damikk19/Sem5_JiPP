@@ -1,13 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  CZUWANIE_PO_MS,
-  czyCzuwanie,
-  noweGry,
-  ODSWIEZANIE_MS,
-  opoznienie,
-  PO_BLEDZIE_MS,
-  W_CZUWANIU_MS,
-} from "@/lib/odswiezanie";
+import { czyCzuwanie, LIMIT_CZASU_MS, noweGry, opoznienie } from "@/lib/odswiezanie";
 import type { Score } from "@/lib/score";
 
 // Która gra ma migać na stronie (WF-15). Ostatnie gry przychodzą od najnowszej.
@@ -58,18 +50,23 @@ describe("nowe gry do wyróżnienia na stronie", () => {
 });
 
 describe("tempo odpytywania", () => {
-  it("normalnie co 5 s, po błędzie rzadziej, w czuwaniu co 30 min", () => {
-    expect(opoznienie({ blad: false, czuwanie: false })).toBe(ODSWIEZANIE_MS);
-    expect(opoznienie({ blad: true, czuwanie: false })).toBe(PO_BLEDZIE_MS);
-    expect(opoznienie({ blad: false, czuwanie: true })).toBe(W_CZUWANIU_MS);
-    expect(opoznienie({ blad: true, czuwanie: true })).toBe(W_CZUWANIU_MS);
-    expect(ODSWIEZANIE_MS).toBeLessThan(PO_BLEDZIE_MS);
-    expect(PO_BLEDZIE_MS).toBeLessThan(W_CZUWANIU_MS);
+  // Liczby wprost z wymagań: porównanie stałych między sobą przepuściłoby np. odpytywanie co 1 s
+  it("normalnie co 5 s, po błędzie co 15 s, w czuwaniu co 30 min", () => {
+    expect(opoznienie({ blad: false, czuwanie: false })).toBe(5_000);
+    expect(opoznienie({ blad: true, czuwanie: false })).toBe(15_000);
+    expect(opoznienie({ blad: false, czuwanie: true })).toBe(30 * 60_000);
+    expect(opoznienie({ blad: true, czuwanie: true })).toBe(30 * 60_000);
+  });
+
+  it("zawieszone żądanie kończy się najpóźniej po 8 s", () => {
+    expect(LIMIT_CZASU_MS).toBeGreaterThan(0);
+    expect(LIMIT_CZASU_MS).toBeLessThanOrEqual(8_000);
   });
 
   it("czuwanie zaczyna się po godzinie bez nowej gry i bez ruchu na stronie", () => {
     const start = 1_000_000;
-    expect(czyCzuwanie(start + CZUWANIE_PO_MS - 1, start)).toBe(false);
-    expect(czyCzuwanie(start + CZUWANIE_PO_MS, start)).toBe(true);
+    const godzina = 60 * 60_000;
+    expect(czyCzuwanie(start + godzina - 1, start)).toBe(false);
+    expect(czyCzuwanie(start + godzina, start)).toBe(true);
   });
 });

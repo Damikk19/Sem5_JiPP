@@ -42,6 +42,7 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
     const res = await POST(post('{"id":"ABC","wynik":123}'));
     expect(res.status).toBe(401);
     expect(res.headers.get("www-authenticate")).toBe("Bearer");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
     expect(repo.save).not.toHaveBeenCalled();
   });
 
@@ -106,6 +107,9 @@ describe("GET /api/scores (ranking)", () => {
     vi.mocked(repo.getTop).mockResolvedValue([WYNIK]);
     const res = await GET(new NextRequest(ADRES));
     expect(res.status).toBe(200);
+    // Strona z innej domeny (np. test prowadzącego w przeglądarce) musi móc przeczytać odpowiedź
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(res.headers.get("access-control-allow-methods")).toBeNull();
     expect(await res.json()).toEqual([WYNIK]);
     expect(repo.getTop).toHaveBeenCalledWith(10);
   });
@@ -154,6 +158,7 @@ describe("GET /api/ranking (dane dla strony w jednym żądaniu)", () => {
     vi.mocked(repo.getLatest).mockResolvedValue([WYNIK]);
     const res = await RANKING();
     expect(res.status).toBe(200);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
     expect(await res.json()).toEqual({ top: [WYNIK], latest: [WYNIK] });
     expect(repo.getTop).toHaveBeenCalledWith(10);
     expect(repo.getLatest).toHaveBeenCalledWith(10);

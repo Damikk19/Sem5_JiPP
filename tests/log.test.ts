@@ -26,6 +26,11 @@ describe("logowanie błędów bez haseł", () => {
     expect(log).not.toContain("c/d");
   });
 
+  it("ukrywa hasło w każdym adresie w komunikacie, nie tylko w pierwszym", () => {
+    const log = zalogowane(new Error("postgres://a:Haslo1@h1/db failed, retry postgresql://b:Haslo2@h2/db password=Haslo3 password=Haslo4"));
+    for (const haslo of ["Haslo1", "Haslo2", "Haslo3", "Haslo4"]) expect(log).not.toContain(haslo);
+  });
+
   it("ukrywa hasło podane jako password=", () => {
     expect(zalogowane(new Error("host=x password=Tajne123 user=u"))).not.toContain("Tajne123");
   });
