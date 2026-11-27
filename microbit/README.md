@@ -42,4 +42,4 @@ Po zmianie `main.ts` plik trzeba pobrać z MakeCode od nowa (Pobierz → Pobierz
 2. wklej zawartość `main.ts` (pakiet radia nowy projekt ma od razu)
 3. gra działa od razu w symulatorze, a **Pobierz** wgrywa ją na micro:bita przez USB
 
-Dźwięki używają klasycznego `music.playTone` zamiast nowego `music.play`, bo z nowym API program nie mieścił się na micro:bicie V1. Dźwięki z gry gra jeden wątek w tle, więc krótki (np. strzał) nie ucina dłuższego (utrata życia). Melodia końca gry startuje z tego wątku, ale gra już we własnym.
+Dźwięki używają klasycznego `music.playTone` zamiast nowego `music.play`, bo z nowym API program nie mieścił się na micro:bicie V1. Dźwięki z gry gra jeden wątek w tle, więc krótki (np. strzał) nie ucina dłuższego (utrata życia). Ten sam wątek gra melodię końca gry: te same nuty co wbudowana „wawawawaa”, ale zwykłymi tonami, bo wbudowane melodie wciągają cały silnik melodii, a z nim program nie mieści się na V1.

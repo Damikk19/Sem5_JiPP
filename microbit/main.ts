@@ -431,8 +431,15 @@ basic.forever(function () {
         tonMs = 0
         music.playTone(tonHz, dlugosc)
     } else if (melodiaKonca) {
-        // Melodia gra we własnym wątku, więc startuje dopiero, kiedy wybrzmi ostatni ton z gry
+        // Melodia końca gry: te same nuty co wbudowana "wawawawaa" (E, D#, D, Cis). Wbudowane melodie
+        // wciągają cały silnik melodii, a z nim gra nie mieści się na micro:bicie V1.
         melodiaKonca = false
-        music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
+        music.playTone(330, 375)
+        basic.pause(125)
+        music.playTone(311, 375)
+        basic.pause(125)
+        music.playTone(294, 500)
+        basic.pause(125)
+        music.playTone(277, 1000)
     }
 })
