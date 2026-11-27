@@ -1,4 +1,4 @@
-# CI: przy każdym pushu i pull requeście sprawdza lint, typy, testy i build.
+# CI: przy pushu na main i przy pull requeście sprawdza lint, typy, testy i build.
 # CD robi Vercel: po pushu na main sam buduje i wdraża nową wersję.
 name: CI
 
@@ -10,14 +10,20 @@ on:
 permissions:
   contents: read
 
+# Nowy push przerywa poprzednie sprawdzanie tej samej gałęzi
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sprawdzenie:
     name: Lint, typy, testy, build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      # Akcje przypięte do konkretnego commita: tag można przesunąć, commita nie
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
           cache: npm
