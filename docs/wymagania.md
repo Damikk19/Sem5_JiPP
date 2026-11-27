@@ -27,8 +27,8 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 
 | Nr | Wymaganie |
 | --- | --- |
-| WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API. Bez klucza odpowiada `401`. |
-| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, `wynik` musi być liczbą całkowitą 0–99999. |
+| WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`. |
+| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
 | WF-10 | API zapisuje wynik w bazie. Unikalne `id` wpisu i czas zapisu nadaje baza. |
 | WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100, domyślnie 10). |
 | WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`). |
@@ -40,7 +40,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | --- | --- |
 | WF-14 | Strona pokazuje 10 najlepszych wyników i ostatnią grę, odświeża się co 2 s bez przeładowania. |
 | WF-15 | Nowy wynik jest wyróżniony na stronie (miga). |
-| WF-16 | Strona pokazuje stan połączenia z API (na żywo albo brak połączenia). |
+| WF-16 | Gdy strona traci połączenie z API, pokazuje komunikat „BRAK SYGNAŁU Z SERWERA”, a przy działającym połączeniu zachęca do gry. |
 | WF-17 | Wyświetlacz fizyczny pokazuje 5 najlepszych wyników i odświeża je co 10 s. **Planowane**, sprzęt do ustalenia. |
 
 ## Wymagania niefunkcjonalne
@@ -86,7 +86,7 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 | Pole | Typ | Opis |
 | --- | --- | --- |
 | `id` | tekst | identyfikator gracza (nick), 1–32 znaki |
-| `wynik` | liczba całkowita | 0–99999, może przyjść jako tekst (`"123"`) |
+| `wynik` | liczba całkowita | 0–99999, może przyjść jako tekst z samych cyfr (`"123"`) |
 
 ### 3. ScoreDto (powstaje w API po walidacji)
 

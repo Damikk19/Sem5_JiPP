@@ -1,5 +1,8 @@
 // Opis API dla prowadzącego i bramki.
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "RAM INVADERS · API" };
 
 export default function Docs() {
   return (
@@ -16,17 +19,23 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p>
-        Wymaga klucza API: nagłówek <code>Authorization: Bearer &lt;klucz&gt;</code> (albo{" "}
-        <code>X-API-Key: &lt;klucz&gt;</code>, albo <code>?key=&lt;klucz&gt;</code> w adresie).
+        <code>id</code>: identyfikator gracza, 1–32 znaki. <code>wynik</code>: liczba całkowita 0–99999 (może
+        przyjść jako tekst z samych cyfr, np. <code>&quot;50&quot;</code>).
       </p>
       <p>
-        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>400</code> z opisem błędu danych albo{" "}
-        <code>401</code> bez poprawnego klucza.
+        Wymaga klucza API: nagłówek <code>Authorization: Bearer &lt;klucz&gt;</code> (albo{" "}
+        <code>X-API-Key: &lt;klucz&gt;</code>, albo <code>?key=&lt;klucz&gt;</code> w adresie). API sprawdza
+        każde z tych miejsc.
+      </p>
+      <p>
+        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>400</code> z opisem błędu danych,{" "}
+        <code>401</code> bez poprawnego klucza albo <code>500</code> przy błędzie serwera.
       </p>
 
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
       <p>
-        Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>.
+        Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>. Bez klucza.{" "}
+        <code>limit</code> 1–100, domyślnie 10.
       </p>
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.

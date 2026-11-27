@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Damikk19/Sem5_JiPP/actions/workflows/ci.yml/badge.svg)](https://github.com/Damikk19/Sem5_JiPP/actions/workflows/ci.yml)
 
-Gra zręcznościowa na micro:bicie. Po grze wynik i nick gracza trafiają do bazy, a ranking widać na stronie i na fizycznym wyświetlaczu.
+Gra zręcznościowa na micro:bicie. Po grze wynik i nick gracza trafiają do bazy, a ranking widać na stronie (fizyczny wyświetlacz jest planowany, sprzęt do ustalenia z prowadzącym).
 
 Na żywo: https://sem5-jipp.vercel.app · API: https://sem5-jipp.vercel.app/api/scores
 
@@ -23,13 +23,13 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 { "id": "ABC", "wynik": 50 }
 ```
 
-Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nagłówek `Authorization: Bearer <klucz>`, `X-API-Key: <klucz>` albo `?key=<klucz>` w adresie. Klucz jest w zmiennej `API_TOKEN` na Vercelu, nie w repo. Bez klucza: `401`.
+Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nagłówek `Authorization: Bearer <klucz>`, `X-API-Key: <klucz>` albo `?key=<klucz>` w adresie. API sprawdza każde z tych miejsc, więc obcy nagłówek `Authorization` doklejany przez bramkę nie przeszkadza kluczowi podanemu w `X-API-Key` albo w adresie. Klucz jest w zmiennej `API_TOKEN` na Vercelu, nie w repo. Bez klucza: `401`.
 
 - `id` to identyfikator gracza (nick), 1–32 znaki
-- `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst, np. `"50"`)
-- odpowiedź `201` z zapisanym wynikiem, `400` z opisem błędu albo `401` bez klucza
+- `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst z samych cyfr, np. `"50"`; `"1e3"` czy `"12.5"` są odrzucane)
+- odpowiedź `201` z zapisanym wynikiem, `400` z opisem błędu, `401` bez klucza albo `500` przy błędzie serwera
 
-`GET /api/scores?limit=10` (publiczny, bez klucza) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
+`GET /api/scores?limit=10` (publiczny, bez klucza; `limit` 1–100, domyślnie 10) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
 
 ```json
 [{ "id": "uuid", "playerId": "ABC", "score": 50, "timestamp": "2026-11-23T12:00:00.000Z" }]
@@ -37,7 +37,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 
 `GET /api/scores?sort=latest&limit=1` zwraca ostatnią grę (pasek „ostatnia gra” na stronie).
 
-`DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku, bo klucz do zapisu ma tylko dopisywać. Lokalnie: `npm run usun -- <id>`.
+`DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku `Authorization: Bearer` albo `X-API-Key` (nie w adresie, bo adres zostaje w logach), bo klucz do zapisu ma tylko dopisywać. Odpowiedź `200`, `400` (złe `id`), `401` albo `404`. Lokalnie: `npm run usun -- <id>`.
 
 `id` i `timestamp` nadaje baza, bo micro:bit nie ma zegara ani generatora UUID.
 
