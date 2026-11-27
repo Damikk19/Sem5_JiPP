@@ -128,7 +128,9 @@ function nowaGra() {
     ostatniRuchPocisku = input.runningTime()
 }
 
-// Jeden krok gry, wołany w pętli co ~10 ms. Każdy element ma własne tempo.
+// Jeden krok gry, wołany w pętli co ok. 36 ms: pause(10), potem 20 ms przerwy, którą basic.forever
+// robi po każdym obiegu, a planista budzi wątek dopiero w swoim takcie (6 ms na V1, 4 ms na V2).
+// Każdy element ma własne tempo.
 function krokGry() {
     if (gcTeraz) {
         gcTeraz = false
@@ -316,7 +318,8 @@ function koniecGry() {
     ramy = []
     pocisk.delete()
     gracz.delete()
-    // Silnik gier odświeża ekran co 30 ms, więc wstrzymujemy go, żeby nie zamazał napisów
+    // Silnik game rysuje duszki co ok. 54 ms: czeka tylko, aż wyświetlacz skończy animację, i rysuje swoje.
+    // Bez pauzy zamazałby to, co zostaje na ekranie po animacji: literę nicku, znaczek wysyłki, klatki tytułu.
     game.pause()
     basic.clearScreen()
     // Melodię puści wątek dźwięku (na dole pliku)
@@ -368,8 +371,8 @@ function klatkaRamu() {
     klatkaTytulu = 1 - klatkaTytulu
 }
 
-// Cały ekran rysuje ta jedna pętla, a przyciski tylko zmieniają stan.
-// Dzięki temu animacje nie nachodzą na siebie.
+// Napisy, litery i animacje rysuje tylko ta pętla, a przyciski tylko zmieniają stan
+// (w grze przesuwają duszki, które rysuje silnik game). Dzięki temu animacje nie nachodzą na siebie.
 basic.forever(function () {
     if (stan == INTRO) {
         przewin("RAM INVADERS")
@@ -384,6 +387,7 @@ basic.forever(function () {
         stan = GRA
     } else if (stan == GRA) {
         krokGry()
+        // Razem z przerwą basic.forever krok wypada co ok. 36 ms (opis przy krokGry)
         basic.pause(10)
     } else if (stan == KONIEC) {
         koniecGry()
