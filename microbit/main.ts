@@ -157,7 +157,6 @@ function strzel() {
         return
     }
     pocisk = game.createSprite(gracz.get(LedSpriteProperty.X), 3)
-    pocisk.set(LedSpriteProperty.Brightness, 255)
     ostatniRuchPocisku = input.runningTime()
     dzwiek(880, 40)
     sprawdzTrafienia()
@@ -189,8 +188,8 @@ function spadanie() {
 function nowyRam() {
     let x = randint(0, 4)
     // Nie stawiamy kości na innej kości w górnym rzędzie
-    for (let ram2 of ramy) {
-        if (!(ram2.isDeleted()) && ram2.get(LedSpriteProperty.Y) == 0 && ram2.get(LedSpriteProperty.X) == x) {
+    for (let innyRam of ramy) {
+        if (!(innyRam.isDeleted()) && innyRam.get(LedSpriteProperty.Y) == 0 && innyRam.get(LedSpriteProperty.X) == x) {
             return
         }
     }
@@ -210,28 +209,28 @@ function sprawdzTrafienia() {
     if (pocisk.isDeleted()) {
         return
     }
-    for (let ram3 of ramy) {
-        if (!(ram3.isDeleted()) && pocisk.isTouching(ram3)) {
+    for (let cel of ramy) {
+        if (!(cel.isDeleted()) && pocisk.isTouching(cel)) {
             pocisk.delete()
-            trafienie(ram3)
+            trafienie(cel)
             return
         }
     }
 }
 
-function trafienie(ram4: game.LedSprite) {
-    if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5) {
+function trafienie(trafiony: game.LedSprite) {
+    if (trafiony.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5) {
         // Pierwsze trafienie w DDR5 tylko ją uszkadza
-        ram4.set(LedSpriteProperty.Brightness, JASNOSC_DDR5_USZKODZONA)
+        trafiony.set(LedSpriteProperty.Brightness, JASNOSC_DDR5_USZKODZONA)
         dzwiek(330, 40)
         return
     }
-    if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5_USZKODZONA) {
+    if (trafiony.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5_USZKODZONA) {
         wynik += 3
     } else {
         wynik += 1
     }
-    ram4.delete()
+    trafiony.delete()
     dzwiek(1320, 40)
     // Z każdą zestrzeloną kością gra przyspiesza (tempo dobrane symulacją: partia trwa ok. minuty)
     tempoSpadania = Math.max(300, tempoSpadania - 7)
@@ -239,7 +238,7 @@ function trafienie(ram4: game.LedSprite) {
 }
 
 function stracZycie() {
-    zycia += -1
+    zycia -= 1
     blysk()
     dzwiek(131, 150)
     if (zycia <= 0) {
@@ -264,14 +263,9 @@ function jasnoscGracza() {
 function odpalGC() {
     game.pause()
     dzwiek(660, 300)
-    for (let y = 0; y <= 4; y++) {
-        for (let x2 = 0; x2 <= 4; x2++) {
-            led.plotBrightness(x2, y, 160)
-        }
-        basic.pause(60)
-    }
-    for (let ram7 of ramy) {
-        ram7.delete()
+    zapalEkran(160, 60)
+    for (let smiec of ramy) {
+        smiec.delete()
     }
     pocisk.delete()
     basic.pause(100)
@@ -285,14 +279,22 @@ function odpalGC() {
 // Krótki błysk całego ekranu, kiedy kość "wycieknie" na dół
 function blysk() {
     game.pause()
-    for (let y2 = 0; y2 <= 4; y2++) {
-        for (let x3 = 0; x3 <= 4; x3++) {
-            led.plotBrightness(x3, y2, 120)
-        }
-    }
+    zapalEkran(120, 0)
     basic.pause(120)
     basic.clearScreen()
     game.resume()
+}
+
+// Zapala cały ekran wiersz po wierszu. Przerwa po każdym wierszu daje efekt skanowania od góry.
+function zapalEkran(jasnosc: number, przerwa: number) {
+    for (let wiersz = 0; wiersz <= 4; wiersz++) {
+        for (let kolumna = 0; kolumna <= 4; kolumna++) {
+            led.plotBrightness(kolumna, wiersz, jasnosc)
+        }
+        if (przerwa > 0) {
+            basic.pause(przerwa)
+        }
+    }
 }
 
 // Przewija tekst szybciej niż domyślnie (domyślne "OUT OF MEMORY" trwałoby ok. 12 s)
@@ -303,17 +305,17 @@ function przewin(tekst: string) {
 // Usuwa z listy kości, które zostały zestrzelone albo doleciały na dół
 function posprzataj() {
     let zostaja: game.LedSprite[] = []
-    for (let ram5 of ramy) {
-        if (!(ram5.isDeleted())) {
-            zostaja.push(ram5)
+    for (let kosc of ramy) {
+        if (!(kosc.isDeleted())) {
+            zostaja.push(kosc)
         }
     }
     ramy = zostaja
 }
 
 function koniecGry() {
-    for (let ram6 of ramy) {
-        ram6.delete()
+    for (let pozostaly of ramy) {
+        pozostaly.delete()
     }
     ramy = []
     pocisk.delete()
@@ -344,8 +346,8 @@ function nickJakoTekst() {
 // Ramka radiowa: ID_API;NICK;WYNIK, np. DK;ABC;123 (max 19 znaków).
 // Bramka prowadzącego zamienia ją na POST { "id": "ABC", "wynik": 123 } do naszego API.
 // API przyjmuje wynik 0-99999, więc większego nie wysyłamy (inaczej wynik by przepadł).
-function wyslijWynik(gracz2: string, punkty: number) {
-    radio.sendString(ID_API + ";" + gracz2 + ";" + Math.min(punkty, 99999))
+function wyslijWynik(nickGracza: string, punkty: number) {
+    radio.sendString(ID_API + ";" + nickGracza + ";" + Math.min(punkty, 99999))
 }
 
 // ---------- Ekrany ----------
