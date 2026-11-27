@@ -128,7 +128,7 @@ function nowaGra() {
     ostatniRuchPocisku = input.runningTime()
 }
 
-// Jeden krok gry, wołany w pętli co ok. 36 ms: pause(10), potem 20 ms przerwy, którą basic.forever
+// Jeden krok gry, wołany w pętli co ok. 36 ms na V1 (ok. 32 ms na V2): pause(10), potem 20 ms przerwy, którą basic.forever
 // robi po każdym obiegu, a planista budzi wątek dopiero w swoim takcie (6 ms na V1, 4 ms na V2).
 // Każdy element ma własne tempo.
 function krokGry() {
@@ -389,7 +389,7 @@ basic.forever(function () {
         stan = GRA
     } else if (stan == GRA) {
         krokGry()
-        // Razem z przerwą basic.forever krok wypada co ok. 36 ms (opis przy krokGry)
+        // Razem z przerwą basic.forever krok wypada co ok. 36 ms na V1, 32 ms na V2 (opis przy krokGry)
         basic.pause(10)
     } else if (stan == KONIEC) {
         koniecGry()

@@ -95,7 +95,8 @@ class Gra:
 
 def partia(seed, reakcja=250, klik=180, klik_ab=260, **kw):
     """Bot: patrzy na aktualną planszę i celuje w najniższą kość. Po każdym naciśnięciu jest zajęty
-    przez `klik` ms (A+B: `klik_ab`) i jeszcze losowo do `reakcja` ms, zanim znów spojrzy. GC nie używa."""
+    przez `klik` ms (A+B: `klik_ab`), a potem (także gdy nic nie nacisnął) losowo do `reakcja` ms, zanim znów spojrzy.
+    GC nie używa."""
     rng = random.Random(seed)
     g = Gra(rng, **kw)
     zajety_do = 0
