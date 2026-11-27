@@ -52,6 +52,9 @@ describe("ScoreRepository na prawdziwym Postgresie", () => {
     await wstaw("ABC", 1, "2026-11-23 12:00:00.5+00");
     const [wynik] = await getTop(1);
     expect(wynik.timestamp).toBe("2026-11-23T12:00:00.500Z");
+    const [ostatni] = await getLatest(1);
+    expect(ostatni.timestamp).toBe("2026-11-23T12:00:00.500Z");
+    expect((await remove(wynik.id))?.timestamp).toBe("2026-11-23T12:00:00.500Z");
     expect((await save({ playerId: "X", score: 2 })).timestamp).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
   });
 
@@ -61,8 +64,14 @@ describe("ScoreRepository na prawdziwym Postgresie", () => {
         ('00000000-0000-4000-8000-000000000001', 'A', 5, '2026-11-23 10:00:00+00'),
         ('00000000-0000-4000-8000-000000000003', 'C', 5, '2026-11-23 10:00:00+00'),
         ('00000000-0000-4000-8000-000000000002', 'B', 5, '2026-11-23 10:00:00+00')`);
-    expect((await getLatest(3)).map((w) => w.playerId)).toEqual(["C", "B", "A"]);
-    expect((await getTop(3)).map((w) => w.playerId)).toEqual(["A", "B", "C"]);
+    // Bez indeksów kolejność zależy tylko od ORDER BY (na produkcji indeks ostatnich gier może jeszcze nie istnieć)
+    await baza.pg.exec("SET enable_indexscan = off; SET enable_indexonlyscan = off; SET enable_bitmapscan = off");
+    try {
+      expect((await getLatest(3)).map((w) => w.playerId)).toEqual(["C", "B", "A"]);
+      expect((await getTop(3)).map((w) => w.playerId)).toEqual(["A", "B", "C"]);
+    } finally {
+      await baza.pg.exec("RESET enable_indexscan; RESET enable_indexonlyscan; RESET enable_bitmapscan");
+    }
   });
 
   it("getLatest: od najnowszej gry, niezależnie od wyniku", async () => {
