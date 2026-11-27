@@ -100,9 +100,9 @@ input.onButtonPressed(Button.AB, function () {
         strzel()
     } else if (stan == KONIEC) {
         pominNapisyKonca()
-    } else if (stan == WYBOR_NICKU && pokazanaPozycja == pozycjaNicku && pokazanaLitera >= 0) {
-        // Zatwierdza tylko literę, która jest już na ekranie. W trakcie numeru A+B nic nie robi,
-        // inaczej szybkie klikanie (np. przy pomijaniu napisów) zatwierdziłoby niewidzianą literę.
+    } else if (stan == WYBOR_NICKU && pokazanaPozycja == pozycjaNicku && pokazanaLitera == nick[pozycjaNicku]) {
+        // Zatwierdza tylko literę, która jest już na ekranie. W trakcie numeru i zaraz po A/B (zanim pętla
+        // narysuje nową literę) A+B nic nie robi, inaczej szybkie klikanie zatwierdziłoby niewidzianą literę.
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
             stan = WYSYLKA
