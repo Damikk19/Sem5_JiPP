@@ -1,10 +1,11 @@
 // Opis API dla prowadzącego i bramki.
 import type { Metadata } from "next";
 import Link from "next/link";
+import { OPEN_GRAPH } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   title: "RAM INVADERS · API",
-  openGraph: { title: "RAM INVADERS · API", url: "/docs" },
+  openGraph: { ...OPEN_GRAPH, title: "RAM INVADERS · API", url: "/docs" },
 };
 
 export default function Docs() {
