@@ -60,10 +60,12 @@ radio.setTransmitPower(7)
 
 // ---------- Przyciski ----------
 
+// W trakcie błysku i GC gra stoi, a silnik niczego nie rysuje, więc przyciski w grze nic wtedy nie robią.
+// Inaczej strzał mógłby trafić niewidocznie, a statek przeskoczyłby dopiero po wznowieniu.
 input.onButtonPressed(Button.A, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, -1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 25) % 26
@@ -73,7 +75,7 @@ input.onButtonPressed(Button.A, function () {
 input.onButtonPressed(Button.B, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, 1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 1) % 26
@@ -83,7 +85,7 @@ input.onButtonPressed(Button.B, function () {
 input.onButtonPressed(Button.AB, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         strzel()
     } else if (stan == WYBOR_NICKU) {
         pozycjaNicku += 1
