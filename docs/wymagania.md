@@ -28,9 +28,9 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | Nr | Wymaganie |
 | --- | --- |
 | WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`. |
-| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki i nie może zawierać znaków sterujących ani niewidocznych, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
+| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
 | WF-10 | API zapisuje wynik w bazie. Unikalne `id` wpisu i czas zapisu nadaje baza. |
-| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100, wartość spoza zakresu jest przycinana, a brak albo coś innego niż liczba daje 10). |
+| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100 z samych cyfr, większa wartość jest przycinana do 100, a 0 do 1; brak albo coś innego, także liczba ujemna, daje 10). |
 | WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`), a dla strony TOP 10 i ostatnie gry w jednym żądaniu (`GET /api/ranking`). |
 | WF-13 | Administrator może usunąć wynik po `id` (`DELETE /api/scores/{id}`) osobnym kluczem admina. Klucz bramki nie pozwala usuwać. |
 
@@ -47,7 +47,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 
 - **Bezpieczeństwo**: klucze są tylko w zmiennych środowiskowych serwera, nie w kodzie. Klucz porównywany jest w stałym czasie. Brak skonfigurowanego klucza blokuje operację. Dane sprawdza API, a dodatkowo `CHECK` w bazie. Strona wysyła nagłówki bezpieczeństwa (CSP, `nosniff`, `Referrer-Policy`), a logi błędów nie zawierają haseł.
 - **Uprawnienia**: dwa klucze z różnymi uprawnieniami. Klucz zapisu tylko dopisuje, klucz admina tylko usuwa.
-- **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`, a ostatnie gry z indeksu `(timestamp DESC)`.
+- **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`, a ostatnie gry z indeksu `(timestamp DESC, id DESC)`.
 - **Kompatybilność**: gra działa na micro:bicie V1 i V2 (uniwersalny plik `.hex`).
 - **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach z miesięcznymi limitami (m.in. 1 mln wywołań funkcji, 100 godzin pracy bazy). Dlatego strona pyta jednym żądaniem co 5 s, a w czuwaniu co 30 min, żeby baza mogła zasnąć.
 - **Wdrażanie**: każdy push na `main` automatycznie buduje i wdraża nową wersję. Nieudany build nie zastępuje działającej wersji.
@@ -85,7 +85,7 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `id` | tekst | identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i niewidocznych |
+| `id` | tekst | identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku) |
 | `wynik` | liczba całkowita | 0–99999, może przyjść jako tekst z samych cyfr (`"123"`) |
 
 ### 3. ScoreDto (powstaje w API po walidacji)

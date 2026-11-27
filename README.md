@@ -25,11 +25,11 @@ Bramkę robi prowadzący: odbiera wynik przez radio i wysyła go do naszego API.
 
 Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nagłówek `Authorization: Bearer <klucz>`, `X-API-Key: <klucz>` albo `?key=<klucz>` w adresie. API sprawdza każde z tych miejsc, więc obcy nagłówek `Authorization` doklejany przez bramkę nie przeszkadza kluczowi podanemu w `X-API-Key` albo w adresie. Klucz jest w zmiennej `API_TOKEN` na Vercelu, nie w repo. Bez klucza: `401`.
 
-- `id` to identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i niewidocznych
+- `id` to identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku)
 - `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst z samych cyfr, np. `"50"`; `"1e3"` czy `"12.5"` są odrzucane)
 - odpowiedź `201` z zapisanym wynikiem, `400` z opisem błędu, `401` bez klucza albo `500` przy błędzie serwera
 
-`GET /api/scores?limit=10` (publiczny, bez klucza; `limit` 1–100, wartość spoza zakresu jest przycinana, a brak albo coś innego niż liczba daje 10) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
+`GET /api/scores?limit=10` (publiczny, bez klucza; `limit` 1–100 z samych cyfr, większa wartość jest przycinana do 100, a 0 do 1; brak albo coś innego, także liczba ujemna, daje 10) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
 
 ```json
 [{ "id": "uuid", "playerId": "ABC", "score": 50, "timestamp": "2026-11-23T12:00:00.000Z" }]
@@ -37,7 +37,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 
 `GET /api/scores?sort=latest&limit=1` zwraca ostatnią grę.
 
-`GET /api/ranking` zwraca w jednym żądaniu dane dla strony: `{ "top": [...], "latest": [...] }`, czyli TOP 10 i 10 ostatnich gier.
+`GET /api/ranking` zwraca w jednym żądaniu dane dla strony: `{ "top": [...], "latest": [...] }`, czyli TOP 10 i 10 ostatnich gier (`500` przy błędzie serwera).
 
 `DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku `Authorization: Bearer` albo `X-API-Key` (nie w adresie, bo adres zostaje w logach), bo klucz do zapisu ma tylko dopisywać. Odpowiedź `200`, `400` (złe `id`), `401`, `404` albo `500` przy błędzie serwera. Lokalnie: `npm run usun -- <id>`.
 

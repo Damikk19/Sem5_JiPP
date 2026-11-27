@@ -23,7 +23,7 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p>
-        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i niewidocznych. <code>wynik</code>: liczba całkowita 0–99999 (może
+        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku). <code>wynik</code>: liczba całkowita 0–99999 (może
         przyjść jako tekst z samych cyfr, np. <code>&quot;50&quot;</code>).
       </p>
       <p>
@@ -39,7 +39,7 @@ export default function Docs() {
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
       <p>
         Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>. Bez klucza.{" "}
-        <code>limit</code> 1–100 (wartość spoza zakresu jest przycinana), domyślnie 10 (także gdy to nie liczba).
+        <code>limit</code> 1–100 z samych cyfr (większa wartość jest przycinana), domyślnie 10 (także gdy to nie liczba albo liczba ujemna).
       </p>
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
@@ -48,7 +48,7 @@ export default function Docs() {
       <h2 className="sekcja">GET /api/ranking</h2>
       <p>
         Dane dla strony z rankingiem w jednym żądaniu: <code>{`{ top, latest }`}</code>, czyli TOP 10 i 10
-        ostatnich gier. Bez klucza.
+        ostatnich gier. Bez klucza. <code>500</code> przy błędzie serwera.
       </p>
 
       <h2 className="sekcja">DELETE /api/scores/&lt;id&gt;</h2>
