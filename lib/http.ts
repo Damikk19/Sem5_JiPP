@@ -2,11 +2,8 @@ import type { AuthResult } from "./auth";
 
 // Bramka i Arduino nie wysyłają nagłówków CORS, ale przeglądarka już tak,
 // więc pozwalamy na wywołania z dowolnej strony (np. testy z przeglądarki).
-export const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
-};
+// Bez ciasteczek i sesji, więc obca strona może najwyżej przeczytać publiczny ranking.
+export const CORS = { "Access-Control-Allow-Origin": "*" };
 
 export function json(data: unknown, status = 200) {
   return Response.json(data, { status, headers: CORS });
@@ -24,6 +21,15 @@ export function authError(result: Exclude<AuthResult, "ok">, which: string) {
   );
 }
 
-export function preflight() {
-  return new Response(null, { status: 204, headers: CORS });
+// Odpowiedź na zapytanie wstępne przeglądarki (OPTIONS): metody, które obsługuje dana trasa
+export function preflight(methods: string) {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...CORS,
+      "Access-Control-Allow-Methods": `${methods}, OPTIONS`,
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }
