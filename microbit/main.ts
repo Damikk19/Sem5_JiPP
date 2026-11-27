@@ -48,6 +48,11 @@ let klatkaTytulu = 0
 let gcDostepny = true
 let gcTeraz = false
 
+// Ton czekający na wątek dźwięku (tonMs = 0: nic nie czeka)
+let tonHz = 0
+let tonMs = 0
+let melodiaKonca = false
+
 radio.setGroup(GRUPA_RADIA)
 radio.setTransmitPower(7)
 
@@ -311,7 +316,8 @@ function koniecGry() {
     // Silnik gier odświeża ekran co 30 ms, więc wstrzymujemy go, żeby nie zamazał napisów
     game.pause()
     basic.clearScreen()
-    music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
+    // Melodię puści wątek dźwięku (na dole pliku)
+    melodiaKonca = true
     przewin("OUT OF MEMORY")
     przewin("" + wynik)
 }
@@ -390,9 +396,27 @@ basic.forever(function () {
     }
 })
 
-// Krótki dźwięk bez zatrzymywania gry
+// ---------- Dźwięk ----------
+
+// Dźwięki gra jeden wątek na całą grę: dzwiek() tylko zapisuje ton, a gra go pętla niżej
+// (gdy nic nie gra, najpóźniej po ok. 24 ms). Każdy ton gra do końca, więc strzał nie ucina
+// dźwięku utraty życia, a gra nie tworzy nowego wątku przy każdym dźwięku (na V1 jest mało pamięci).
 function dzwiek(czestotliwosc: number, czas: number) {
-    control.inBackground(function () {
-        music.playTone(czestotliwosc, czas)
-    })
+    // Dłuższy dźwięk (utrata życia, GC) jest ważniejszy, więc krótszy go nie zastępuje
+    if (czas >= tonMs) {
+        tonHz = czestotliwosc
+        tonMs = czas
+    }
 }
+
+basic.forever(function () {
+    if (tonMs > 0) {
+        let dlugosc = tonMs
+        tonMs = 0
+        music.playTone(tonHz, dlugosc)
+    } else if (melodiaKonca) {
+        // Melodia gra we własnym wątku, więc startuje dopiero, kiedy wybrzmi ostatni ton z gry
+        melodiaKonca = false
+        music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
+    }
+})
