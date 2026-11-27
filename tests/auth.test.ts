@@ -39,6 +39,35 @@ describe("klucz zapisu (API_TOKEN)", () => {
   });
 });
 
+describe("klucz zapisu: bramka podaje klucz w nietypowy sposób", () => {
+  it.each([
+    ["obcy Bearer + dobry X-API-Key", { authorization: "Bearer cos-od-bramki", "x-api-key": "klucz-bramki" }, ""],
+    ["obcy Bearer + dobry ?key=", { authorization: "Bearer cos-od-bramki" }, "?key=klucz-bramki"],
+    ["Basic + dobry ?key=", { authorization: "Basic dXNlcjpoYXNsbw==" }, "?key=klucz-bramki"],
+    ["sam klucz w Authorization, bez Bearer", { authorization: "klucz-bramki" }, ""],
+    ["Authorization: Token <klucz>", { authorization: "Token klucz-bramki" }, ""],
+    ["?key= ze spacją na końcu", {}, "?key=klucz-bramki%20"],
+  ])("przyjmuje: %s", (_opis, headers, query) => {
+    vi.stubEnv("API_TOKEN", "klucz-bramki");
+    expect(checkApiKey(zapytanie(headers, query))).toBe("ok");
+  });
+
+  it.each([
+    ["obcy Bearer i nic więcej", { authorization: "Bearer cos-od-bramki" }, ""],
+    ["zły klucz w każdym miejscu", { authorization: "Bearer zly", "x-api-key": "zly" }, "?key=zly"],
+    ["klucz jako prefiks w Authorization", { authorization: "Bearer klucz-bramki-x" }, ""],
+  ])("odrzuca: %s", (_opis, headers, query) => {
+    vi.stubEnv("API_TOKEN", "klucz-bramki");
+    expect(checkApiKey(zapytanie(headers, query))).toBe("invalid");
+  });
+
+  it("sam napis Bearer bez klucza traktuje jak brak klucza", () => {
+    vi.stubEnv("API_TOKEN", "klucz-bramki");
+    expect(checkApiKey(zapytanie({ authorization: "Bearer" }))).toBe("missing");
+    expect(checkApiKey(zapytanie({}, "?key="))).toBe("missing");
+  });
+});
+
 describe("klucz admina (ADMIN_TOKEN)", () => {
   it("przyjmuje klucz admina w nagłówku", () => {
     vi.stubEnv("ADMIN_TOKEN", "klucz-admina");
@@ -48,6 +77,16 @@ describe("klucz admina (ADMIN_TOKEN)", () => {
   it("nie przyjmuje klucza admina w adresie, bo adres zostaje w logach", () => {
     vi.stubEnv("ADMIN_TOKEN", "klucz-admina");
     expect(checkAdminKey(zapytanie({}, "?key=klucz-admina"))).toBe("missing");
+  });
+
+  it("klucz admina w adresie nie działa także obok obcego nagłówka", () => {
+    vi.stubEnv("ADMIN_TOKEN", "klucz-admina");
+    expect(checkAdminKey(zapytanie({ authorization: "Bearer cos" }, "?key=klucz-admina"))).toBe("invalid");
+  });
+
+  it("przyjmuje klucz admina w X-API-Key obok obcego Bearer", () => {
+    vi.stubEnv("ADMIN_TOKEN", "klucz-admina");
+    expect(checkAdminKey(zapytanie({ authorization: "Bearer cos", "x-api-key": "klucz-admina" }))).toBe("ok");
   });
 
   it("klucz bramki nie działa jako klucz admina", () => {
