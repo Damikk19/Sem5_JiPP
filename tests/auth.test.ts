@@ -88,6 +88,24 @@ describe("klucz zapisu: bramka podaje klucz w nietypowy sposób", () => {
   });
 });
 
+describe("klucz w konfiguracji serwera z białymi znakami", () => {
+  it("klucz z samych spacji traktuje jak brak klucza (zapis i usuwanie zablokowane)", () => {
+    vi.stubEnv("API_TOKEN", "   ");
+    vi.stubEnv("ADMIN_TOKEN", " \n ");
+    expect(checkApiKey(zapytanie({ authorization: "Bearer cokolwiek" }))).toBe("not-configured");
+    expect(checkAdminKey(zapytanie({ authorization: "Bearer cokolwiek" }))).toBe("not-configured");
+  });
+
+  it("klucz wklejony z enterem na końcu dalej przyjmuje poprawny klucz od bramki", () => {
+    vi.stubEnv("API_TOKEN", "klucz-bramki\n");
+    vi.stubEnv("ADMIN_TOKEN", " klucz-admina ");
+    expect(checkApiKey(zapytanie({ authorization: "Bearer klucz-bramki" }))).toBe("ok");
+    expect(checkApiKey(zapytanie({}, "?key=klucz-bramki"))).toBe("ok");
+    expect(checkAdminKey(zapytanie({ "x-api-key": "klucz-admina" }))).toBe("ok");
+    expect(checkApiKey(zapytanie({ authorization: "Bearer zly" }))).toBe("invalid");
+  });
+});
+
 describe("brak zmiennej z kluczem na serwerze", () => {
   it("blokuje zapis i usuwanie, gdy zmiennej w ogóle nie ma (nie tylko gdy jest pusta)", () => {
     vi.stubEnv("API_TOKEN", undefined);

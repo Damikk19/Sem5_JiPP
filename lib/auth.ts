@@ -36,7 +36,9 @@ function sameKey(given: string, expected: string) {
   return timingSafeEqual(a, b);
 }
 
-function check(request: Request, expected: string | undefined, allowQuery: boolean): AuthResult {
+function check(request: Request, configured: string | undefined, allowQuery: boolean): AuthResult {
+  // Klucz z konfiguracji też przycinamy: wklejony na Vercelu z enterem na końcu nie może blokować bramki
+  const expected = configured?.trim();
   // Bez skonfigurowanego klucza operacja jest zablokowana (lepiej odrzucić niż wpuścić wszystkich)
   if (!expected) return "not-configured";
   const given = candidates(request, allowQuery);
