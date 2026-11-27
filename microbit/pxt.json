@@ -3,8 +3,7 @@
     "description": "Strzelanka na micro:bita: zestrzel spadające kości RAM. Projekt JiPP.",
     "dependencies": {
         "core": "*",
-        "radio": "*",
-        "microphone": "*"
+        "radio": "*"
     },
     "files": [
         "main.ts",
