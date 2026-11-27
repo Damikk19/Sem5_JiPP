@@ -20,7 +20,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | WF-03 | Kość, która doleci do dolnego rzędu, zabiera życie. Gracz ma 3 życia, a jasność statku pokazuje, ile zostało. |
 | WF-04 | Raz na grę gracz może potrząsnąć micro:bitem, żeby usunąć wszystkie kości z ekranu (Garbage Collector). |
 | WF-05 | Każda zestrzelona kość przyspiesza grę. Przeciętna partia trwa około minuty. |
-| WF-06 | Po grze gracz wybiera nick z 3 liter: A/B zmienia literę, A+B ją zatwierdza. Nick zostaje na następną grę. |
+| WF-06 | Po grze gracz wybiera nick z 3 liter: przed każdą literą widać jej numer (1–3), A/B zmienia literę, A+B ją zatwierdza. Nick zostaje na następną grę. Napisy po przegranej (OUT OF MEMORY i wynik) można pominąć przyciskiem. |
 | WF-07 | Po zatwierdzeniu nicku micro:bit wysyła wynik radiem do bramki (jedna ramka) i pokazuje nick z wynikiem. |
 
 ### API

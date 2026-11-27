@@ -15,12 +15,12 @@ Strzelanka na micro:bita: z góry spadają kości RAM, a Ty strzelasz do nich ze
 - Kość, która doleci do dolnego rzędu, zabiera życie. Są 3 życia, a jasność statku pokazuje, ile zostało.
 - Każda zestrzelona kość przyspiesza grę. Tempo jest dobrane symulacją (`symulacja_tempa.py`: logika gry w Pythonie + boty o różnym refleksie): przeciętna partia trwa ok. minuty (mediana od 45 s u wolnego bota do ok. 100 s u szybkiego).
 - **Potrząśnięcie = Garbage Collector** (raz na grę): ekran „skanuje pamięć” od góry do dołu, gra na chwilę staje jak przy GC typu stop-the-world i znikają wszystkie kości. Punktów za to nie ma, to koło ratunkowe.
-- Kiedy kość „wycieknie” na dół, ekran krótko błyska. Po trzeciej przegrana kończy się napisem **OUT OF MEMORY**.
+- Kiedy kość „wycieknie” na dół, ekran krótko błyska. Po trzeciej przegrana kończy się napisem **OUT OF MEMORY** i wynikiem. Po 1,5 s od przegranej dowolny przycisk je pomija i przechodzi do napisu **NICK** (kolejny przycisk pomija i jego).
 - W trakcie błysku i GC gra stoi, więc przyciski nic wtedy nie robią.
 
 ## Nick i wysyłka
 
-Po grze: **A / B** zmienia literę, **A+B** zatwierdza (krótki dźwięk, przy każdej kolejnej literze wyższy). Po trzeciej literze micro:bit wysyła radiem ramkę:
+Po grze: przed każdą literą na chwilę pojawia się jej numer (**1**, **2**, **3**), **A / B** zmienia literę, **A+B** zatwierdza (krótki dźwięk, przy każdej kolejnej literze wyższy). Po trzeciej literze micro:bit wysyła radiem ramkę:
 
 ```
 DK;ABC;123     (ID_API;NICK;WYNIK, max 19 znaków)
