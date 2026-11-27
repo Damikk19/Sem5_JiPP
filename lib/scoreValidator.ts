@@ -20,7 +20,8 @@ export function parse(body: unknown): ParseResult {
     return { ok: false, error: `"id" musi mieć od 1 do ${MAX_PLAYER_ID_LENGTH} znaków` };
   }
 
-  const score = typeof wynik === "string" && wynik.trim() !== "" ? Number(wynik) : wynik;
+  // Wynik jako tekst tylko z samych cyfr: "123" tak, ale "1e3", "0x1F" czy "12.5" już nie
+  const score = typeof wynik === "string" && /^\d+$/.test(wynik.trim()) ? Number(wynik.trim()) : wynik;
   if (typeof score !== "number" || !Number.isInteger(score) || score < 0 || score > MAX_SCORE) {
     return { ok: false, error: `"wynik" musi być liczbą całkowitą od 0 do ${MAX_SCORE}` };
   }

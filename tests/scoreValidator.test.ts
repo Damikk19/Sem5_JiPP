@@ -28,6 +28,17 @@ describe("walidacja wyniku od bramki", () => {
     expect(parse({ id: "ABC", wynik }).ok).toBe(true);
   });
 
+  it.each(["123", " 123 ", "123\r\n", "0", "99999", "007"])("przyjmuje wynik jako tekst z samych cyfr: %j", (wynik) => {
+    expect(parse({ id: "ABC", wynik }).ok).toBe(true);
+  });
+
+  it.each(["1e3", "0x1F", "12.5", "12.0", "+5", "-0", "1 000", "1_000", "100000", "Infinity", "NaN"])(
+    "odrzuca wynik jako tekst, który nie jest liczbą z samych cyfr albo jest poza zakresem: %j",
+    (wynik) => {
+      expect(parse({ id: "ABC", wynik }).ok).toBe(false);
+    },
+  );
+
   it.each([-1, 100000, 1.5, "abc", "", null, true, undefined])("odrzuca wynik %s", (wynik) => {
     expect(parse({ id: "ABC", wynik }).ok).toBe(false);
   });
