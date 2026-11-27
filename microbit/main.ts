@@ -89,6 +89,9 @@ input.onButtonPressed(Button.AB, function () {
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
             stan = WYSYLKA
+        } else {
+            // Następna litera bywa taka sama jak poprzednia, więc przejście słychać (coraz wyższy ton)
+            dzwiek(523 + 200 * pozycjaNicku, 60)
         }
     }
 })
