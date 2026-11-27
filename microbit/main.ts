@@ -40,6 +40,11 @@ let pokazanaLitera = -1
 // Pozycja nicku, której numer był ostatnio pokazany (-1: jeszcze żadna)
 let pokazanaPozycja = -1
 
+// Po przegranej przycisk pomija napisy, ale dopiero po tej przerwie (ms): gracz mógł jeszcze klikać ruch
+let PRZERWA_PRZED_POMINIECIEM = 1500
+let czasPrzegranej = 0
+let pominNapisy = false
+
 let ramy: game.LedSprite[] = []
 let zycia = 3
 let wynik = 0
@@ -69,6 +74,8 @@ input.onButtonPressed(Button.A, function () {
         stan = ODLICZANIE
     } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, -1)
+    } else if (stan == KONIEC) {
+        pominNapisyKonca()
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 25) % 26
     }
@@ -79,6 +86,8 @@ input.onButtonPressed(Button.B, function () {
         stan = ODLICZANIE
     } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, 1)
+    } else if (stan == KONIEC) {
+        pominNapisyKonca()
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 1) % 26
     }
@@ -89,6 +98,8 @@ input.onButtonPressed(Button.AB, function () {
         stan = ODLICZANIE
     } else if (stan == GRA && !(game.isPaused())) {
         strzel()
+    } else if (stan == KONIEC) {
+        pominNapisyKonca()
     } else if (stan == WYBOR_NICKU) {
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
@@ -244,6 +255,8 @@ function stracZycie() {
     blysk()
     dzwiek(131, 150)
     if (zycia <= 0) {
+        czasPrzegranej = input.runningTime()
+        pominNapisy = false
         stan = KONIEC
     } else {
         gracz.set(LedSpriteProperty.Brightness, jasnoscGracza())
@@ -329,7 +342,19 @@ function koniecGry() {
     // Melodię puści wątek dźwięku (na dole pliku)
     melodiaKonca = true
     przewin("OUT OF MEMORY")
-    przewin("" + wynik)
+    // Wynik i tak widać jeszcze raz po wysłaniu (nick + wynik)
+    if (!(pominNapisy)) {
+        przewin("" + wynik)
+    }
+}
+
+// Przycisk po przegranej przerywa przewijany napis i pomija wynik, a napis NICK przerywa drugi raz.
+// Rysowanie zostaje w pętli: led.stopAnimation() tylko kończy przewijanie, na które ona czeka.
+function pominNapisyKonca() {
+    if (input.runningTime() - czasPrzegranej >= PRZERWA_PRZED_POMINIECIEM) {
+        pominNapisy = true
+        led.stopAnimation()
+    }
 }
 
 // ---------- Nick i wysyłka ----------
@@ -384,7 +409,8 @@ function klatkaRamu() {
 }
 
 // Napisy, litery i animacje rysuje tylko ta pętla, a przyciski tylko zmieniają stan
-// (w grze przesuwają duszki, które rysuje silnik game). Dzięki temu animacje nie nachodzą na siebie.
+// (w grze przesuwają duszki, które rysuje silnik game, a po przegranej mogą przerwać przewijany napis).
+// Dzięki temu animacje nie nachodzą na siebie.
 basic.forever(function () {
     if (stan == INTRO) {
         przewin("RAM INVADERS")
@@ -404,6 +430,7 @@ basic.forever(function () {
     } else if (stan == KONIEC) {
         koniecGry()
         pozycjaNicku = 0
+        // NICK jest zawsze, także po pominięciu, żeby było jasne, co dalej (kolejny przycisk go przerywa)
         przewin("NICK")
         // Numer i pierwszą literę narysuje gałąź wyboru nicku
         pokazanaPozycja = -1
