@@ -39,7 +39,7 @@ export default function Docs() {
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
       <p>
         Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>. Bez klucza.{" "}
-        <code>limit</code> 1–100 z samych cyfr (większa wartość jest przycinana), domyślnie 10 (także gdy to nie liczba albo liczba ujemna).
+        <code>limit</code> 1–100 z samych cyfr (większa wartość jest przycinana do 100, a 0 do 1), domyślnie 10 (także gdy to nie liczba albo liczba ujemna).
       </p>
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.

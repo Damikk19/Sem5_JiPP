@@ -55,6 +55,11 @@ describe("logowanie błędów bez haseł", () => {
     },
   );
 
+  it("ukrywa adres bazy także wtedy, gdy w komunikacie jest bez spacji z brzegów zmiennej", () => {
+    vi.stubEnv("DATABASE_URL", "  postgresql://u:Tajne123  ");
+    expect(zalogowane(new Error("błąd: postgresql://u:Tajne123 koniec"))).not.toContain("Tajne123");
+  });
+
   it("ukrywa schemat pisany wielkimi literami", () => {
     expect(zalogowane(new Error("POSTGRES://u:Tajne123@h/db"))).not.toContain("Tajne123");
   });

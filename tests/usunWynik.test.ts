@@ -58,6 +58,12 @@ describe("skrypt usuwania wyniku (npm run usun)", () => {
 
   // Komunikat, a nie sam kod 1: kod 1 daje też nieudane połączenie, więc test nie może zależeć od sieci.
   // Domena .invalid nigdy nie istnieje, więc nawet zepsuty skrypt niczego nie wyśle.
+  it.each(["http://localhost.evil.com", "http://127.0.0.1.nip.io"])("nie myli obcego hosta z localhost: %s", async (adresApi) => {
+    const wynik = await usun(ID, adresApi);
+    expect(wynik.kod).toBe(1);
+    expect(wynik.stderr).toContain("API_URL musi zaczynać się od https://");
+  });
+
   it("nie wysyła klucza zwykłym http na obcy serwer", async () => {
     const wynik = await usun(ID, "http://example.invalid");
     expect(wynik.kod).toBe(1);

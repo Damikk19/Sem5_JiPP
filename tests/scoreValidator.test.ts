@@ -81,6 +81,11 @@ describe("walidacja wyniku od bramki", () => {
     ["separator wierszy", "A\u2028B"],
     ["separator akapitów", "A\u2029B"],
     ["znak z obszaru prywatnego", "A\ue000"],
+    ["znak nieprzypisany", "A\u0378"],
+    ["arabski znak kierunku (ALM)", "A\u061cB"],
+    ["znak kierunku (LRM)", "A\u200eB"],
+    ["osadzenie i nadpisanie kierunku (LRE, RLE, PDF, LRO)", "A\u202a\u202b\u202c\u202dB"],
+    ["izolacje kierunku (RLI, FSI, PDI)", "A\u2067\u2068\u2069B"],
   ])("odrzuca id ze znakiem sterującym albo zmieniającym kierunek tekstu: %s", (_, id) => {
     const result = parse({ id, wynik: 1 });
     expect(result).toEqual({ ok: false, error: '"id" nie może zawierać znaków sterujących ani zmieniających kierunek tekstu' });
@@ -94,6 +99,7 @@ describe("walidacja wyniku od bramki", () => {
     ["sam znak łączący", "\u0300"],
     ["selektor wariantu", "\ufe0f"],
     ["miękki dywiz", "\u00ad"],
+    ["wypełniacze Hangul", "\u115f\u1160\uffa0"],
   ])("odrzuca id, które w rankingu byłoby puste: %s", (_, id) => {
     const result = parse({ id, wynik: 1 });
     expect(result).toEqual({ ok: false, error: '"id" musi zawierać co najmniej jeden widoczny znak' });

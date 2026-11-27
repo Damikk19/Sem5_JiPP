@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS scores (
 -- Indeks pod ranking (ORDER BY score DESC, timestamp ASC).
 CREATE INDEX IF NOT EXISTS scores_ranking_idx ON scores (score DESC, "timestamp" ASC);
 
--- Indeks pod ostatnie gry (ORDER BY timestamp DESC), o które strona pyta co kilka sekund.
+-- Indeks pod ostatnie gry (ORDER BY timestamp DESC, id DESC), o które strona pyta co kilka sekund.
 CREATE INDEX IF NOT EXISTS scores_latest_idx ON scores ("timestamp" DESC, id DESC);

@@ -214,6 +214,33 @@ describe("pętla odpytywania strony", () => {
     petla.stop();
   });
 
+  it("ukrycie karty w trakcie pytania: bez fałszywego błędu i bez drugiej pętli", async () => {
+    tryb = "wisi";
+    const petla = start();
+    ukryta = true;
+    petla.powrot();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(zdarzenia.bledy).toBe(0);
+    ukryta = false;
+    tryb = "ok";
+    petla.powrot();
+    await vi.advanceTimersByTimeAsync(0);
+    const przed = sygnaly.length;
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(sygnaly.length - przed).toBe(6);
+    petla.stop();
+  });
+
+  it("powrót do karty po ponad godzinie budzi z czuwania", async () => {
+    const petla = start();
+    await vi.advanceTimersByTimeAsync(2 * GODZINA);
+    expect(zdarzenia.czuwanie.at(-1)).toBe(true);
+    petla.powrot();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(zdarzenia.czuwanie.at(-1)).toBe(false);
+    petla.stop();
+  });
+
   it("po zatrzymaniu (zamknięcie strony) nic już nie przychodzi i nic nie jest pytane", async () => {
     tryb = "wisi";
     const petla = start();
