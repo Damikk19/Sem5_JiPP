@@ -53,6 +53,7 @@ describe("klucz zapisu: bramka podaje klucz w nietypowy sposób", () => {
     ["dobry Bearer + zły X-API-Key", { authorization: "Bearer klucz-bramki", "x-api-key": "zly" }, ""],
     ["dobry X-API-Key + zły ?key=", { "x-api-key": "klucz-bramki" }, "?key=zly"],
     ["Bearer z tabulatorem", { authorization: "Bearer\tklucz-bramki" }, ""],
+    ["zły Bearer + dobry X-API-Key + zły ?key= (środek z trzech)", { authorization: "Bearer zly", "x-api-key": "klucz-bramki" }, "?key=zly"],
   ])("przyjmuje: %s", (_opis, headers, query) => {
     vi.stubEnv("API_TOKEN", "klucz-bramki");
     expect(checkApiKey(zapytanie(headers, query))).toBe("ok");
