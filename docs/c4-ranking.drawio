@@ -14,7 +14,35 @@
             <mxGeometry height="180" width="200" x="160" y="180" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="System rankingu gry" c4Type="System" c4Description="Gra RAM INVADERS na micro:bicie, ranking online i na fizycznym wyświetlaczu" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FSjJcgP7VgxLCdK34C7x-3">
+<object placeholders="1" c4Name="Widz" c4Type="Osoba" c4Description="Ogląda ranking na stronie, np. na projektorze w sali" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c1-widz">
+          <mxCell parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" vertex="1">
+            <mxGeometry height="180" width="200" x="440" y="180" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Name="Administrator" c4Type="Osoba" c4Description="Autor projektu. Usuwa z rankingu testowe i fałszywe wpisy" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c1-admin">
+          <mxCell parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" vertex="1">
+            <mxGeometry height="180" width="200" x="720" y="180" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Type="Relationship" c4Technology="przeglądarka" c4Description="Ogląda ranking" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c1-widz-rel">
+          <mxCell edge="1" parent="1" source="c1-widz" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" target="FSjJcgP7VgxLCdK34C7x-3">
+            <mxGeometry relative="1" width="240" x="-0.1429" as="geometry">
+              
+              <mxPoint x="230" y="430" as="sourcePoint" />
+              <mxPoint x="460" y="500" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+<object placeholders="1" c4Type="Relationship" c4Technology="HTTPS + klucz admina" c4Description="Usuwa wpisy z rankingu" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c1-admin-rel">
+          <mxCell edge="1" parent="1" source="c1-admin" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.2;entryDx=0;entryDy=0;" target="FSjJcgP7VgxLCdK34C7x-3">
+            <mxGeometry relative="1" width="240" x="-0.1429" as="geometry">
+              
+              <mxPoint x="230" y="430" as="sourcePoint" />
+              <mxPoint x="460" y="500" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object placeholders="1" c4Name="System rankingu gry" c4Type="System" c4Description="Gra RAM INVADERS na micro:bicie i ranking online (fizyczny wyświetlacz planowany)" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FSjJcgP7VgxLCdK34C7x-3">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#1061B0;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0D5091;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="140" y="480" as="geometry" />
           </mxCell>
@@ -53,7 +81,7 @@
           </mxCell>
         </object>
         <mxCell id="FSjJcgP7VgxLCdK34C7x-8" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=16;align=left;verticalAlign=top;fillColor=none;strokeColor=none;fontColor=#4D4D4D;fontStyle=1;spacingLeft=6;spacing=0;resizable=0;" value="Legenda&#xa;" vertex="1">
-          <mxGeometry height="210" width="180" x="590" y="140" as="geometry" />
+          <mxGeometry height="210" width="180" x="960" y="140" as="geometry" />
         </mxCell>
         <mxCell id="FSjJcgP7VgxLCdK34C7x-9" parent="FSjJcgP7VgxLCdK34C7x-8" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;strokeColor=inherit;top=0;left=0;bottom=0;right=0;collapsible=0;dropTarget=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;" value="" vertex="1">
           <mxGeometry height="30" width="180" y="30" as="geometry" />
@@ -116,13 +144,40 @@
             <mxGeometry height="180" width="200" x="340" y="130" as="geometry" />
           </mxCell>
         </object>
+<object placeholders="1" c4Name="Widz" c4Type="Osoba" c4Description="Ogląda ranking na stronie, np. na projektorze w sali" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c2-widz">
+          <mxCell parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" vertex="1">
+            <mxGeometry height="180" width="200" x="800" y="100" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Name="Administrator" c4Type="Osoba" c4Description="Autor projektu. Usuwa z rankingu testowe i fałszywe wpisy" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c2-admin">
+          <mxCell parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" vertex="1">
+            <mxGeometry height="180" width="200" x="920" y="680" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Type="Relationship" c4Technology="przeglądarka" c4Description="Ogląda ranking" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c2-widz-rel">
+          <mxCell edge="1" parent="1" source="c2-widz" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitDx=0;exitDy=0;exitPerimeter=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" target="Yph0b-RfCueSuZv3r79v-18">
+            <mxGeometry relative="1" x="0.55" width="240" as="geometry"><Array as="points"><mxPoint x="900" y="490" /><mxPoint x="509" y="490" /></Array>
+              <mxPoint x="430" y="510" as="sourcePoint" />
+              <mxPoint x="670" y="510" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+<object placeholders="1" c4Type="Relationship" c4Technology="HTTPS + klucz admina" c4Description="Usuwa wpis: DELETE /api/scores/{id}" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c2-admin-rel">
+          <mxCell edge="1" parent="1" source="c2-admin" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" target="Yph0b-RfCueSuZv3r79v-20">
+            <mxGeometry relative="1" width="240" x="-0.3551" y="-2" as="geometry">
+              <mxPoint x="-1" as="offset" />
+              <mxPoint x="320" y="640" as="sourcePoint" />
+              <mxPoint x="560" y="640" as="targetPoint" />
+            </mxGeometry>
+          </mxCell>
+        </object>
         <object placeholders="1" c4Name="Bramka radiowa prowadzącego" c4Type="System zewnętrzny" c4Description="Odbiera radiem wyniki ze wszystkich micro:bitów i wysyła każdy na serwer przypisany do jego ID_API" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-2">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="20" y="220" as="geometry" />
           </mxCell>
         </object>
         <mxCell id="Yph0b-RfCueSuZv3r79v-3" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=16;align=left;verticalAlign=top;fillColor=none;strokeColor=none;fontColor=#4D4D4D;fontStyle=1;spacingLeft=6;spacing=0;resizable=0;" value="Legenda&#xa;" vertex="1">
-          <mxGeometry height="210" width="180" x="640" y="40" as="geometry" />
+          <mxGeometry height="210" width="180" x="1060" y="40" as="geometry" />
         </mxCell>
         <mxCell id="Yph0b-RfCueSuZv3r79v-4" parent="Yph0b-RfCueSuZv3r79v-3" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;strokeColor=inherit;top=0;left=0;bottom=0;right=0;collapsible=0;dropTarget=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;" value="" vertex="1">
           <mxGeometry height="30" width="180" y="30" as="geometry" />
@@ -182,17 +237,17 @@
             <mxGeometry height="120" width="240" x="20" y="530" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="Strona rankingu" c4Type="Kontener" c4Technology="React (Next.js), przeglądarka" c4Description="Pokazuje TOP 10 i ostatnią grę, odświeża co 2s bez przeładowania strony" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%:&amp;nbsp;%c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-18">
+        <object placeholders="1" c4Name="Strona rankingu" c4Type="Kontener" c4Technology="React (Next.js), przeglądarka" c4Description="Pokazuje TOP 10 i ostatnią grę, odświeża co 5 s (w czuwaniu co 30 min) bez przeładowania strony" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%:&amp;nbsp;%c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-18">
           <mxCell parent="1" style="shape=mxgraph.c4.webBrowserContainer2;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;strokeColor=#118ACD;fillColor=#23A2D9;strokeColor=#118ACD;strokeColor2=#0E7DAD;fontSize=12;fontColor=#ffffff;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.5,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];resizable=0;" vertex="1">
             <mxGeometry height="160" width="240" x="305" y="510" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="Wyświetlacz rankingu" c4Type="Kontener" c4Technology="C++ (Arduino), płytka z Wi-Fi + ekran, model do ustalenia" c4Description="Co 10s pobiera TOP5 z API i pokazuje go na ekranie" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-19">
+        <object placeholders="1" c4Name="Wyświetlacz rankingu" c4Type="Kontener" c4Technology="C++ (Arduino), płytka z Wi-Fi + ekran, model do ustalenia" c4Description="Planowany: co 10 s pobiera TOP 5 z API i pokazuje go na ekranie" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-19">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;labelBackgroundColor=none;fillColor=#23A2D9;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0E7DAD;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="590" y="530" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="API rankingu" c4Type="Kontener" c4Technology="Next.js Route Handlers, Node.js, Vercel" c4Description="Przyjmuje wyniki od bramki (tylko z kluczem API), zapisuje je w bazie i zwraca ranking jako JSON. Serwuje też stronę rankingu" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-20">
+        <object placeholders="1" c4Name="API rankingu" c4Type="Kontener" c4Technology="Next.js Route Handlers, Node.js, Vercel" c4Description="Przyjmuje wyniki od bramki (tylko z kluczem API), zapisuje je w bazie i zwraca ranking jako JSON. Usuwa wpisy kluczem admina. Serwuje też stronę rankingu" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-20">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;labelBackgroundColor=none;fillColor=#23A2D9;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0E7DAD;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="305" y="710" as="geometry" />
           </mxCell>
@@ -224,7 +279,7 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="SQL przez HTTPS (sterownik Neon)" c4Description="Zapisuje i odczytuje wyniki" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-25">
+        <object placeholders="1" c4Type="Relationship" c4Technology="SQL przez HTTPS (sterownik Neon)" c4Description="Zapisuje, odczytuje i usuwa wyniki" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-25">
           <mxCell edge="1" parent="1" source="Yph0b-RfCueSuZv3r79v-20" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;" target="Yph0b-RfCueSuZv3r79v-21">
             <mxGeometry relative="1" width="240" as="geometry">
               <mxPoint x="300" y="650" as="sourcePoint" />
@@ -241,7 +296,7 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera co 2s TOP 10 i ostatnią grę: GET /api/scores" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-27">
+        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera co 5 s TOP 10 i ostatnie gry: GET /api/ranking" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-27">
           <mxCell edge="1" parent="1" source="Yph0b-RfCueSuZv3r79v-18" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=1;exitY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;" target="Yph0b-RfCueSuZv3r79v-20">
             <mxGeometry relative="1" width="240" x="0.0769" as="geometry">
               <mxPoint as="offset" />
@@ -250,7 +305,7 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera TOP5 co 10s: GET /api/scores?limit=5" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-28">
+        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera TOP 5 co 10 s: GET /api/scores?limit=5" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="Yph0b-RfCueSuZv3r79v-28">
           <mxCell edge="1" parent="1" source="Yph0b-RfCueSuZv3r79v-19" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="Yph0b-RfCueSuZv3r79v-20">
             <mxGeometry relative="1" width="240" as="geometry">
               <mxPoint x="380" y="770" as="sourcePoint" />
@@ -297,14 +352,27 @@
             <mxGeometry height="120" width="240" x="305" y="190" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="Strona rankingu" c4Type="Kontener" c4Technology="React (Next.js), przeglądarka" c4Description="Pokazuje TOP 10 i ostatnią grę, odświeża co 2s bez przeładowania strony" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%:&amp;nbsp;%c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-15">
+        <object placeholders="1" c4Name="Strona rankingu" c4Type="Kontener" c4Technology="React (Next.js), przeglądarka" c4Description="Pokazuje TOP 10 i ostatnią grę, odświeża co 5 s (w czuwaniu co 30 min) bez przeładowania strony" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%:&amp;nbsp;%c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-15">
           <mxCell parent="1" style="shape=mxgraph.c4.webBrowserContainer2;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;strokeColor=#118ACD;fillColor=#23A2D9;strokeColor=#118ACD;strokeColor2=#0E7DAD;fontSize=12;fontColor=#ffffff;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.5,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];resizable=0;" vertex="1">
             <mxGeometry height="160" width="240" x="30" y="170" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="Wyświetlacz rankingu" c4Type="Kontener" c4Technology="C++ (Arduino), płytka z Wi-Fi + ekran, model do ustalenia" c4Description="Co 10s pobiera TOP5 z API i pokazuje go na ekranie" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-16">
+        <object placeholders="1" c4Name="Wyświetlacz rankingu" c4Type="Kontener" c4Technology="C++ (Arduino), płytka z Wi-Fi + ekran, model do ustalenia" c4Description="Planowany: co 10 s pobiera TOP 5 z API i pokazuje go na ekranie" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-16">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;labelBackgroundColor=none;fillColor=#23A2D9;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0E7DAD;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="600" y="190" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Name="Administrator" c4Type="Osoba" c4Description="Autor projektu. Usuwa z rankingu testowe i fałszywe wpisy" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c3-admin">
+          <mxCell parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" vertex="1">
+            <mxGeometry height="180" width="200" x="900" y="160" as="geometry" />
+          </mxCell>
+        </object>
+<object placeholders="1" c4Type="Relationship" c4Technology="HTTPS + klucz admina" c4Description="Usuwa wpis: DELETE /api/scores/{id}" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c3-admin-rel">
+          <mxCell edge="1" parent="1" source="c3-admin" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitDx=0;exitDy=0;exitPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.15;entryDx=0;entryDy=0;" target="FjcyVrIcdgKLVUOeSSt0-19">
+            <mxGeometry relative="1" x="-0.6" width="240" as="geometry">
+              <mxPoint x="350" y="570" as="sourcePoint" />
+              <mxPoint x="590" y="570" as="targetPoint" />
+            </mxGeometry>
           </mxCell>
         </object>
         <object placeholders="1" c4Name="Baza wyników" c4Type="Kontener" c4Technology="PostgreSQL (Neon)" c4Description="Jedna tabela scores ze wszystkimi zapisanymi wynikami" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%:&amp;nbsp;%c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#E6E6E6&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-17">
@@ -317,12 +385,12 @@
             <mxGeometry height="40" width="370" x="240" y="60" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="GameController" c4Type="Komponent" c4Technology="Next.js Route Handlers w app/api/scores/" c4Description="POST: sprawdza klucz i zapisuje wynik (201, 400, 401). GET: TOP N albo ostatnie gry. DELETE {id}: usuwa wpis kluczem admina" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-19">
+        <object placeholders="1" c4Name="GameController" c4Type="Komponent" c4Technology="Next.js Route Handlers, app/api/" c4Description="POST: zapis (201/400/401/500). GET: ranking i ostatnie gry, też /api/ranking. DELETE {id}: kluczem admina (200/400/401/404/500)" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-19">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#63BEF2;fontColor=#ffffff;align=center;arcSize=6;strokeColor=#2086C9;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="305" y="480" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="ScoreValidator" c4Type="Komponent" c4Technology="TypeScript, lib/scoreValidator.ts" c4Description="Sprawdza body od bramki { id, wynik }: id ma 1-32 znaki, wynik to liczba całkowita 0-99999 (może przyjść jako tekst)" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-20">
+        <object placeholders="1" c4Name="ScoreValidator" c4Type="Komponent" c4Technology="TypeScript, lib/scoreValidator.ts" c4Description="Sprawdza body od bramki { id, wynik }: id ma 1-32 znaki bez znaków sterujących, wynik to liczba całkowita 0-99999 (może przyjść jako tekst)" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-20">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#63BEF2;fontColor=#ffffff;align=center;arcSize=6;strokeColor=#2086C9;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="305" y="650" as="geometry" />
           </mxCell>
@@ -401,7 +469,7 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera co 2s TOP 10 i ostatnią grę: GET /api/scores" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-25">
+        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera co 5 s TOP 10 i ostatnie gry: GET /api/ranking" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-25">
           <mxCell edge="1" parent="1" source="FjcyVrIcdgKLVUOeSSt0-15" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="FjcyVrIcdgKLVUOeSSt0-19">
             <mxGeometry relative="1" width="240" x="-0.2055" y="-5" as="geometry">
               <mxPoint as="offset" />
@@ -410,7 +478,7 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera TOP5 co 10s: GET /api/scores?limit=5" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-26">
+        <object placeholders="1" c4Type="Relationship" c4Technology="JSON/HTTPS" c4Description="Pobiera TOP 5 co 10 s: GET /api/scores?limit=5" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-26">
           <mxCell edge="1" parent="1" source="FjcyVrIcdgKLVUOeSSt0-16" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="FjcyVrIcdgKLVUOeSSt0-19">
             <mxGeometry relative="1" width="240" x="-0.2346" as="geometry">
               <mxPoint as="offset" />
@@ -440,17 +508,17 @@
             </mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Name="ApiKeyGuard" c4Type="Komponent" c4Technology="TypeScript, lib/auth.ts" c4Description="Klucz API do zapisu (bramka) i osobny klucz admina do usuwania. Klucze w zmiennych środowiskowych, bez klucza 401" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c3-apikeyguard">
+        <object placeholders="1" c4Name="ApiKeyGuard" c4Type="Komponent" c4Technology="TypeScript, lib/auth.ts" c4Description="Klucz API do zapisu (bramka) i osobny klucz admina do usuwania, w zmiennych środowiskowych. Zły klucz albo brak: 401, brak klucza na serwerze: 500" label="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;%c4Name%&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[%c4Type%: %c4Technology%]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;%c4Description%&lt;/font&gt;&lt;/div&gt;" id="c3-apikeyguard">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#63BEF2;fontColor=#ffffff;align=center;arcSize=6;strokeColor=#2086C9;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" vertex="1">
             <mxGeometry height="120" width="240" x="20" y="670" as="geometry" />
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="wywoływanie funkcji" c4Description="Sprawdza klucz API przy POST" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c3-apikeyguard-rel">
+        <object placeholders="1" c4Type="Relationship" c4Technology="wywoływanie funkcji" c4Description="Sprawdza klucz API (POST) i admina (DELETE)" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="c3-apikeyguard-rel">
           <mxCell edge="1" parent="1" source="FjcyVrIcdgKLVUOeSSt0-19" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=0;exitY=0.917;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="c3-apikeyguard">
             <mxGeometry relative="1" width="240" as="geometry"><mxPoint x="300" y="620" as="sourcePoint" /><mxPoint x="540" y="620" as="targetPoint" /><Array as="points"><mxPoint x="282" y="590" /><mxPoint x="282" y="730" /></Array><mxPoint x="-130" y="-12" as="offset" /></mxGeometry>
           </mxCell>
         </object>
-        <object placeholders="1" c4Type="Relationship" c4Technology="wywoływanie funkcji" c4Description="Zapisuje wynik, pobiera TOP N" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-29">
+        <object placeholders="1" c4Type="Relationship" c4Technology="wywoływanie funkcji" c4Description="Zapisuje, pobiera ranking i ostatnie gry, usuwa" label="&lt;div style=&quot;text-align: left&quot;&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;%c4Description%&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[%c4Technology%]&lt;/div&gt;&lt;/div&gt;" id="FjcyVrIcdgKLVUOeSSt0-29">
           <mxCell edge="1" parent="1" source="FjcyVrIcdgKLVUOeSSt0-19" style="endArrow=blockThin;html=1;fontSize=10;fontColor=#404040;strokeWidth=1;endFill=1;strokeColor=#828282;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;defaultLabelBackgroundColor=page;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="FjcyVrIcdgKLVUOeSSt0-21">
             <mxGeometry relative="1" width="240" x="-0.034" as="geometry">
               <mxPoint x="480" y="620" as="sourcePoint" />
@@ -480,12 +548,12 @@
           </mxCell>
         </object>
         <mxCell id="7fzathTWYOvZc4DAmRiQ-2" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&amp;lt;&amp;lt;route handler&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;GameController&lt;/div&gt;" vertex="1">
-          <mxGeometry height="124" width="180" x="370" y="160" as="geometry">
+          <mxGeometry height="144" width="210" x="370" y="125" as="geometry">
             <mxRectangle height="40" width="150" x="400" y="270" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="7fzathTWYOvZc4DAmRiQ-5" parent="7fzathTWYOvZc4DAmRiQ-2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;POST(req): 201|400|401|500&lt;/div&gt;&lt;div&gt;GET(req): 200 Score[] | 500&lt;/div&gt;&lt;div&gt;?sort=latest: ostatnie gry&lt;/div&gt;&lt;div&gt;DELETE(id): 200|400|401|404&lt;/div&gt;" vertex="1">
-          <mxGeometry height="84" width="180" y="40" as="geometry" />
+        <mxCell id="7fzathTWYOvZc4DAmRiQ-5" parent="7fzathTWYOvZc4DAmRiQ-2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;POST(req): 201|400|401|500&lt;/div&gt;&lt;div&gt;GET(req): 200 Score[] | 500&lt;/div&gt;&lt;div&gt;?sort=latest: ostatnie gry&lt;/div&gt;&lt;div&gt;DELETE(id): 200|400|401|404|500&lt;br&gt;ranking(): 200 { top, latest } | 500&lt;/div&gt;" vertex="1">
+          <mxGeometry height="104" width="210" y="40" as="geometry" />
         </mxCell>
         <mxCell id="c4-apikeyguard" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&amp;lt;&amp;lt;funkcja&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;ApiKeyGuard&lt;/div&gt;" vertex="1">
           <mxGeometry height="142" width="160" x="130" y="160" as="geometry" />
@@ -497,16 +565,16 @@
           <mxGeometry relative="1" width="160" as="geometry"><mxPoint x="370" y="210" as="sourcePoint" /><mxPoint x="290" y="210" as="targetPoint" /></mxGeometry>
         </mxCell>
         <mxCell id="7fzathTWYOvZc4DAmRiQ-7" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&amp;lt;&amp;lt;funkcja&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;ScoreValidator&lt;/div&gt;" vertex="1">
-          <mxGeometry height="140" width="160" x="200" y="310" as="geometry" />
+          <mxGeometry height="140" width="250" x="200" y="310" as="geometry" />
         </mxCell>
-        <mxCell id="7fzathTWYOvZc4DAmRiQ-8" parent="7fzathTWYOvZc4DAmRiQ-7" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;id: tekst, 1-32 znaki&lt;/div&gt;&lt;div&gt;wynik: int, 0-99999&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="160" y="40" as="geometry" />
+        <mxCell id="7fzathTWYOvZc4DAmRiQ-8" parent="7fzathTWYOvZc4DAmRiQ-7" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;id: tekst, 1-32 znaki, bez sterujących&lt;/div&gt;&lt;div&gt;wynik: int, 0-99999&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="250" y="40" as="geometry" />
         </mxCell>
         <mxCell id="7fzathTWYOvZc4DAmRiQ-9" parent="7fzathTWYOvZc4DAmRiQ-7" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;labelPerimeter=1;" value="" vertex="1">
-          <mxGeometry height="26" width="160" y="80" as="geometry" />
+          <mxGeometry height="26" width="250" y="80" as="geometry" />
         </mxCell>
         <mxCell id="7fzathTWYOvZc4DAmRiQ-10" parent="7fzathTWYOvZc4DAmRiQ-7" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="parse(body): ScoreDto" vertex="1">
-          <mxGeometry height="34" width="160" y="106" as="geometry" />
+          <mxGeometry height="34" width="250" y="106" as="geometry" />
         </mxCell>
         <mxCell id="7fzathTWYOvZc4DAmRiQ-12" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&amp;lt;&amp;lt;SQL, Neon&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;ScoreRepository&lt;/div&gt;" vertex="1">
           <mxGeometry height="134" width="160" x="520" y="310" as="geometry" />
