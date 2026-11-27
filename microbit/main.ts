@@ -100,7 +100,9 @@ input.onButtonPressed(Button.AB, function () {
         strzel()
     } else if (stan == KONIEC) {
         pominNapisyKonca()
-    } else if (stan == WYBOR_NICKU) {
+    } else if (stan == WYBOR_NICKU && pokazanaPozycja == pozycjaNicku && pokazanaLitera >= 0) {
+        // Zatwierdza tylko literę, która jest już na ekranie. W trakcie numeru A+B nic nie robi,
+        // inaczej szybkie klikanie (np. przy pomijaniu napisów) zatwierdziłoby niewidzianą literę.
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
             stan = WYSYLKA
@@ -349,7 +351,7 @@ function koniecGry() {
 }
 
 // Przycisk po przegranej przerywa przewijany napis i pomija wynik, a napis NICK przerywa drugi raz.
-// Rysowanie zostaje w pętli: led.stopAnimation() tylko kończy przewijanie, na które ona czeka.
+// Rysowanie zostaje w pętli: led.stopAnimation() kończy przewijanie, na które ona czeka, i czyści ekran.
 function pominNapisyKonca() {
     if (input.runningTime() - czasPrzegranej >= PRZERWA_PRZED_POMINIECIEM) {
         pominNapisy = true
