@@ -1,7 +1,5 @@
 // Kość RAM z ekranu tytułowego gry, narysowana jak matryca 5x5 micro:bita.
-// Klatki są te same co w microbit/main.ts (klatkaRamu): środkowy rząd mruga na zmianę.
-const KLATKA_A = [".....", "#####", "#.#.#", "#####", ".#.#."];
-const KLATKA_B = [".....", "#####", ".#.#.", "#####", ".#.#."];
+import { KLATKA_A, KLATKA_B } from "@/lib/ram";
 
 function klasa(x: number, y: number) {
   const a = KLATKA_A[y][x] === "#";

@@ -2,6 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { KLATKA_A, LED } from "@/lib/ram";
 
 export const alt = "RAM INVADERS: ranking gry na micro:bicie";
 export const size = { width: 1200, height: 630 };
@@ -9,9 +10,6 @@ export const contentType = "image/png";
 
 // Generator obrazków nie czyta formatu woff2 z next/font, więc font leży w repo jako TTF (licencja OFL)
 const font = await readFile(join(process.cwd(), "assets/fonts/PressStart2P-Regular.ttf"));
-
-const RAM = [".....", "#####", "#.#.#", "#####", ".#.#."];
-const LED = "#ff3c28";
 
 export default function Image() {
   return new ImageResponse(
@@ -29,7 +27,7 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {RAM.map((wiersz, y) => (
+          {KLATKA_A.map((wiersz, y) => (
             <div key={y} style={{ display: "flex", gap: 12 }}>
               {wiersz.split("").map((znak, x) => (
                 <div
