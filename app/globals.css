@@ -5,7 +5,8 @@
   --background: #000;
   --foreground: #f4f1e8;
   --muted: #8b8b8b;
-  --dim: #3b3b3b;
+  /* Puste wiersze: przygaszone, ale czytelne (kontrast 3:1) */
+  --dim: #595959;
   --led: #ff3c28;
   --orange: #ff8a00;
   --yellow: #ffe14d;
@@ -16,15 +17,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-mono-text);
-  --font-mono: var(--font-mono-text);
+  --font-sans: ui-monospace, monospace;
+  --font-mono: ui-monospace, monospace;
   --font-pixel: var(--font-press-start);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-mono-text), ui-monospace, monospace;
+  font-family: ui-monospace, monospace;
 }
 
 /* Linie kineskopu i lekko przyciemnione rogi, nałożone na całą stronę */
@@ -120,12 +121,20 @@ body::after {
   margin: 0;
 }
 
+/* Długi nick (API przyjmuje do 32 znaków) nie może rozpychać paska ani przewijać strony w bok */
+.hud > div {
+  min-width: 0;
+}
+
 .hud .etykieta {
   color: var(--led);
 }
 
 .hud .wartosc {
   margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .naglowek {
@@ -163,13 +172,14 @@ body::after {
   text-shadow: none;
 }
 
-/* Nowy wynik miga jak na automacie: twarde mignięcia, bez płynnego przejścia */
+/* Nowy wynik miga jak na automacie: twarde mignięcia, bez płynnego przejścia.
+   Przez opacity, nie visibility: ukryty element znika też czytnikowi ekranu. */
 .miga-nowy {
   animation: miga 0.24s steps(1) 7;
 }
 
 @keyframes miga {
-  50% { visibility: hidden; }
+  50% { opacity: 0; }
 }
 
 .zacheta {
@@ -184,7 +194,7 @@ body::after {
 }
 
 @keyframes zacheta {
-  70% { visibility: hidden; }
+  70% { opacity: 0; }
 }
 
 .sterowanie {
@@ -284,6 +294,11 @@ body::after {
   .miga-nowy,
   .zacheta {
     animation: none;
+  }
+
+  /* Bez migania nowy wynik jest podświetlony, dopóki strona nie pobierze kolejnych danych */
+  .miga-nowy {
+    background: rgb(255 255 255 / 0.14);
   }
 }
 
