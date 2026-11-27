@@ -30,3 +30,91 @@ export function opoznienie(stan: { blad: boolean; czuwanie: boolean }) {
   if (stan.czuwanie) return W_CZUWANIU_MS;
   return stan.blad ? PO_BLEDZIE_MS : ODSWIEZANIE_MS;
 }
+
+export type Ranking = { top: Score[]; latest: Score[] };
+
+type Opcje = {
+  pobierz: (signal: AbortSignal) => Promise<Ranking>;
+  ukryta: () => boolean;
+  naDane: (dane: Ranking, nowe: string[]) => void;
+  naBlad: () => void;
+  naCzuwanie: (czuwanie: boolean) => void;
+};
+
+// Odrzuca, gdy pytanie zostanie przerwane (limit czasu albo nowsze pytanie), nawet jeśli samo pobieranie
+// nie reaguje na sygnał
+function przerwanie(signal: AbortSignal) {
+  return new Promise<never>((_, odrzuc) => {
+    signal.addEventListener("abort", () => odrzuc(new Error("przerwane")), { once: true });
+  });
+}
+
+// Pętla odpytywania strony z rankingiem. Pytania nigdy się nie nakładają: nowe pytanie przerywa poprzednie.
+// Zwraca funkcje dla zdarzeń strony (powrót do karty, kliknięcie albo klawisz) i do zatrzymania.
+export function odpytuj(o: Opcje) {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let biezace: AbortController | null = null;
+  let najnowsza: string | null | undefined = undefined;
+  let aktywnosc = Date.now();
+  let czuwa = false;
+
+  async function tick() {
+    clearTimeout(timer);
+    biezace?.abort();
+    let blad = false;
+
+    // Karta w tle nie odpytuje API
+    if (!o.ukryta()) {
+      const ctrl = new AbortController();
+      biezace = ctrl;
+      // Bez limitu czasu zawieszone połączenie trzymałoby stare dane z napisem, że wszystko działa
+      const limit = setTimeout(() => ctrl.abort(), LIMIT_CZASU_MS);
+      try {
+        const dane = await Promise.race([o.pobierz(ctrl.signal), przerwanie(ctrl.signal)]);
+        if (stopped || biezace !== ctrl) return;
+        const wynik = noweGry(dane.latest, najnowsza);
+        najnowsza = wynik.najnowsza;
+        if (wynik.nowe.length > 0) aktywnosc = Date.now();
+        o.naDane(dane, wynik.nowe);
+      } catch {
+        // Przerwane przez nowsze pytanie albo zamknięcie strony: tym zajmuje się nowsze wywołanie
+        if (stopped || biezace !== ctrl) return;
+        blad = true;
+        o.naBlad();
+      } finally {
+        clearTimeout(limit);
+      }
+    }
+
+    if (stopped) return;
+    czuwa = czyCzuwanie(Date.now(), aktywnosc);
+    o.naCzuwanie(czuwa);
+    timer = setTimeout(tick, opoznienie({ blad, czuwanie: czuwa }));
+  }
+
+  tick();
+
+  return {
+    // Powrót do karty: od razu świeże dane zamiast czekania na następne pytanie
+    powrot() {
+      if (stopped || o.ukryta()) return;
+      aktywnosc = Date.now();
+      tick();
+    },
+    // Kliknięcie albo klawisz budzi stronę z czuwania. Tylko pierwsze: kolejne (np. przytrzymany klawisz)
+    // nie wysyłają kolejnych pytań.
+    ruch() {
+      aktywnosc = Date.now();
+      if (stopped || !czuwa) return;
+      czuwa = false;
+      o.naCzuwanie(false);
+      tick();
+    },
+    stop() {
+      stopped = true;
+      clearTimeout(timer);
+      biezace?.abort();
+    },
+  };
+}
