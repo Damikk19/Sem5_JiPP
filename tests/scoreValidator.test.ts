@@ -51,6 +51,33 @@ describe("walidacja wyniku od bramki", () => {
     expect(parse({ id: "x".repeat(33), wynik: 1 }).ok).toBe(false);
   });
 
+  it("liczy długość id w znakach, jak baza: 32 emoji tak, 33 nie", () => {
+    expect(parse({ id: "👾".repeat(32), wynik: 1 }).ok).toBe(true);
+    expect(parse({ id: "👾".repeat(33), wynik: 1 }).ok).toBe(false);
+  });
+
+  it.each(["ŻÓŁW", "A B", "gracz-1", "Ünal", "👾"])("przyjmuje zwykły nick: %j", (id) => {
+    expect(parse({ id, wynik: 1 }).ok).toBe(true);
+  });
+
+  it.each([
+    ["NUL", "A\u0000B"],
+    ["znak nowej linii w środku", "A\nB"],
+    ["tabulator w środku", "A\tB"],
+    ["spacja zerowej szerokości", "\u200b"],
+    ["zmiana kierunku tekstu (RLO)", "\u202eNIMDA"],
+    ["izolacja kierunku (LRI)", "AB\u2066C"],
+    ["łącznik zerowej szerokości", "A\u200dB"],
+    ["samotny surogat", "A\ud800"],
+    ["separator wierszy", "A\u2028B"],
+    ["separator akapitów", "A\u2029B"],
+    ["DEL", "A\u007fB"],
+    ["znak z obszaru prywatnego", "A\ue000"],
+  ])("odrzuca id ze znakiem sterującym albo niewidocznym: %s", (_, id) => {
+    const result = parse({ id, wynik: 1 });
+    expect(result).toEqual({ ok: false, error: '"id" nie może zawierać znaków sterujących ani niewidocznych' });
+  });
+
   it.each([undefined, "", "   ", null, { a: 1 }])("odrzuca brakujące albo puste id: %s", (id) => {
     expect(parse({ id, wynik: 1 }).ok).toBe(false);
   });
