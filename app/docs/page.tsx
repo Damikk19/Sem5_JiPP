@@ -2,7 +2,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "RAM INVADERS · API" };
+export const metadata: Metadata = {
+  title: "RAM INVADERS · API",
+  openGraph: { title: "RAM INVADERS · API", url: "/docs" },
+};
 
 export default function Docs() {
   return (
@@ -35,7 +38,7 @@ export default function Docs() {
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
       <p>
         Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>. Bez klucza.{" "}
-        <code>limit</code> 1–100, domyślnie 10.
+        <code>limit</code> 1–100 (wartość spoza zakresu jest przycinana), domyślnie 10.
       </p>
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
@@ -49,7 +52,7 @@ export default function Docs() {
       </p>
       <p>
         Odpowiedź <code>200</code> z usuniętym wpisem, <code>404</code> gdy go nie ma, <code>400</code> przy
-        złym <code>id</code> albo <code>401</code> bez klucza admina.
+        złym <code>id</code>, <code>401</code> bez klucza admina albo <code>500</code> przy błędzie serwera.
       </p>
     </main>
   );

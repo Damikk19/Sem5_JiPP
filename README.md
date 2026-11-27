@@ -29,7 +29,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 - `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst z samych cyfr, np. `"50"`; `"1e3"` czy `"12.5"` są odrzucane)
 - odpowiedź `201` z zapisanym wynikiem, `400` z opisem błędu, `401` bez klucza albo `500` przy błędzie serwera
 
-`GET /api/scores?limit=10` (publiczny, bez klucza; `limit` 1–100, domyślnie 10) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
+`GET /api/scores?limit=10` (publiczny, bez klucza; `limit` 1–100, wartość spoza zakresu jest przycinana, domyślnie 10) zwraca ranking od najlepszego wyniku (przy remisie wyżej jest ten, kto był pierwszy):
 
 ```json
 [{ "id": "uuid", "playerId": "ABC", "score": 50, "timestamp": "2026-11-23T12:00:00.000Z" }]
@@ -37,7 +37,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 
 `GET /api/scores?sort=latest&limit=1` zwraca ostatnią grę (pasek „ostatnia gra” na stronie).
 
-`DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku `Authorization: Bearer` albo `X-API-Key` (nie w adresie, bo adres zostaje w logach), bo klucz do zapisu ma tylko dopisywać. Odpowiedź `200`, `400` (złe `id`), `401` albo `404`. Lokalnie: `npm run usun -- <id>`.
+`DELETE /api/scores/{id}` usuwa wynik (np. testowy albo fałszywy). Wymaga osobnego klucza admina (`ADMIN_TOKEN`) w nagłówku `Authorization: Bearer` albo `X-API-Key` (nie w adresie, bo adres zostaje w logach), bo klucz do zapisu ma tylko dopisywać. Odpowiedź `200`, `400` (złe `id`), `401`, `404` albo `500` przy błędzie serwera. Lokalnie: `npm run usun -- <id>`.
 
 `id` i `timestamp` nadaje baza, bo micro:bit nie ma zegara ani generatora UUID.
 
