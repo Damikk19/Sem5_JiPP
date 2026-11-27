@@ -48,6 +48,23 @@ describe("ScoreRepository na prawdziwym Postgresie", () => {
     expect(await getTop(3)).toHaveLength(3);
   });
 
+  it("zwraca czas jako tekst ISO, tak jak opisuje API", async () => {
+    await wstaw("ABC", 1, "2026-11-23 12:00:00.5+00");
+    const [wynik] = await getTop(1);
+    expect(wynik.timestamp).toBe("2026-11-23T12:00:00.500Z");
+    expect((await save({ playerId: "X", score: 2 })).timestamp).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  });
+
+  it("getLatest i getTop: przy identycznym czasie kolejność jest zawsze ta sama", async () => {
+    await baza.pg.exec(`
+      INSERT INTO scores (id, player_id, score, "timestamp") VALUES
+        ('00000000-0000-4000-8000-000000000001', 'A', 5, '2026-11-23 10:00:00+00'),
+        ('00000000-0000-4000-8000-000000000003', 'C', 5, '2026-11-23 10:00:00+00'),
+        ('00000000-0000-4000-8000-000000000002', 'B', 5, '2026-11-23 10:00:00+00')`);
+    expect((await getLatest(3)).map((w) => w.playerId)).toEqual(["C", "B", "A"]);
+    expect((await getTop(3)).map((w) => w.playerId)).toEqual(["A", "B", "C"]);
+  });
+
   it("getLatest: od najnowszej gry, niezależnie od wyniku", async () => {
     await wstaw("STARY", 999, "2026-11-23 08:00:00+00");
     await wstaw("NOWY", 1, "2026-11-23 12:00:00+00");
