@@ -28,28 +28,28 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | Nr | Wymaganie |
 | --- | --- |
 | WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`. |
-| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
+| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki i nie może zawierać znaków sterujących ani niewidocznych, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
 | WF-10 | API zapisuje wynik w bazie. Unikalne `id` wpisu i czas zapisu nadaje baza. |
-| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100, wartość spoza zakresu jest przycinana, domyślnie 10). |
-| WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`). |
+| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100, wartość spoza zakresu jest przycinana, a brak albo coś innego niż liczba daje 10). |
+| WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`), a dla strony TOP 10 i ostatnie gry w jednym żądaniu (`GET /api/ranking`). |
 | WF-13 | Administrator może usunąć wynik po `id` (`DELETE /api/scores/{id}`) osobnym kluczem admina. Klucz bramki nie pozwala usuwać. |
 
 ### Ranking
 
 | Nr | Wymaganie |
 | --- | --- |
-| WF-14 | Strona pokazuje 10 najlepszych wyników i ostatnią grę, odświeża się co 2 s bez przeładowania. |
-| WF-15 | Nowy wynik jest wyróżniony na stronie (miga). |
+| WF-14 | Strona pokazuje 10 najlepszych wyników i ostatnią grę, odświeża się co 5 s bez przeładowania. Po godzinie bez nowej gry i bez ruchu na stronie pyta API co 30 min (czuwanie), a kliknięcie albo powrót do karty od razu ją budzi. |
+| WF-15 | Nowe wyniki (wszystkie od poprzedniego odświeżenia) są wyróżnione na stronie: migają, a przy wyłączonych animacjach są podświetlone. Usunięcie wpisu nie wyróżnia starszej gry. |
 | WF-16 | Gdy strona traci połączenie z API, pokazuje komunikat „BRAK SYGNAŁU Z SERWERA”, a przy działającym połączeniu zachęca do gry. |
 | WF-17 | Wyświetlacz fizyczny pokazuje 5 najlepszych wyników i odświeża je co 10 s. **Planowane**, sprzęt do ustalenia. |
 
 ## Wymagania niefunkcjonalne
 
-- **Bezpieczeństwo**: klucze są tylko w zmiennych środowiskowych serwera, nie w kodzie. Klucz porównywany jest w stałym czasie. Brak skonfigurowanego klucza blokuje operację. Dane sprawdza API, a dodatkowo `CHECK` w bazie.
+- **Bezpieczeństwo**: klucze są tylko w zmiennych środowiskowych serwera, nie w kodzie. Klucz porównywany jest w stałym czasie. Brak skonfigurowanego klucza blokuje operację. Dane sprawdza API, a dodatkowo `CHECK` w bazie. Strona wysyła nagłówki bezpieczeństwa (CSP, `nosniff`, `Referrer-Policy`), a logi błędów nie zawierają haseł.
 - **Uprawnienia**: dwa klucze z różnymi uprawnieniami. Klucz zapisu tylko dopisuje, klucz admina tylko usuwa.
-- **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`.
+- **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`, a ostatnie gry z indeksu `(timestamp DESC)`.
 - **Kompatybilność**: gra działa na micro:bicie V1 i V2 (uniwersalny plik `.hex`).
-- **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach.
+- **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach z miesięcznymi limitami (m.in. 1 mln wywołań funkcji, 100 godzin pracy bazy). Dlatego strona pyta jednym żądaniem co 5 s, a w czuwaniu co 30 min, żeby baza mogła zasnąć.
 - **Wdrażanie**: każdy push na `main` automatycznie buduje i wdraża nową wersję. Nieudany build nie zastępuje działającej wersji.
 
 ## Komunikacja
@@ -59,7 +59,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | Gra (micro:bit) | Bramka | ramka z wynikiem | radio micro:bit | po zatwierdzeniu nicku |
 | Bramka | API | wynik do zapisu | HTTPS `POST /api/scores`, JSON, klucz API | po odebraniu ramki |
 | API | Baza | zapis, odczyt, usunięcie | SQL przez HTTPS (sterownik Neon) | przy każdym żądaniu |
-| Strona | API | ranking i ostatnia gra | HTTPS `GET /api/scores`, JSON | co 2 s |
+| Strona | API | ranking i ostatnie gry | HTTPS `GET /api/ranking`, JSON | co 5 s (w czuwaniu co 30 min) |
 | Wyświetlacz | API | 5 najlepszych wyników | HTTPS `GET /api/scores?limit=5`, JSON | co 10 s (planowane) |
 | Administrator | API | usunięcie wyniku | HTTPS `DELETE /api/scores/{id}`, klucz admina | ręcznie |
 
@@ -85,7 +85,7 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `id` | tekst | identyfikator gracza (nick), 1–32 znaki |
+| `id` | tekst | identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i niewidocznych |
 | `wynik` | liczba całkowita | 0–99999, może przyjść jako tekst z samych cyfr (`"123"`) |
 
 ### 3. ScoreDto (powstaje w API po walidacji)
@@ -112,7 +112,7 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 { "id": "3f2b8c1e-7a4d-4c2b-9e1f-0a6b5c4d3e2f", "playerId": "ABC", "score": 123, "timestamp": "2026-11-23T13:09:54.827Z" }
 ```
 
-`GET` zwraca tablicę takich obiektów, a `POST` (`201`) i `DELETE` (`200`) zwracają jeden.
+`GET /api/scores` zwraca tablicę takich obiektów, a `POST` (`201`) i `DELETE` (`200`) zwracają jeden. `GET /api/ranking` zwraca obiekt `{ "top": Score[], "latest": Score[] }` (TOP 10 i 10 ostatnich gier).
 
 ### 6. Błąd
 

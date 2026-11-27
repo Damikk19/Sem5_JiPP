@@ -23,7 +23,7 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p>
-        <code>id</code>: identyfikator gracza, 1–32 znaki. <code>wynik</code>: liczba całkowita 0–99999 (może
+        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i niewidocznych. <code>wynik</code>: liczba całkowita 0–99999 (może
         przyjść jako tekst z samych cyfr, np. <code>&quot;50&quot;</code>).
       </p>
       <p>
@@ -39,10 +39,16 @@ export default function Docs() {
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
       <p>
         Zwraca ranking od najlepszego wyniku: <code>[{`{ id, playerId, score, timestamp }`}]</code>. Bez klucza.{" "}
-        <code>limit</code> 1–100 (wartość spoza zakresu jest przycinana), domyślnie 10.
+        <code>limit</code> 1–100 (wartość spoza zakresu jest przycinana), domyślnie 10 (także gdy to nie liczba).
       </p>
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
+      </p>
+
+      <h2 className="sekcja">GET /api/ranking</h2>
+      <p>
+        Dane dla strony z rankingiem w jednym żądaniu: <code>{`{ top, latest }`}</code>, czyli TOP 10 i 10
+        ostatnich gier. Bez klucza.
       </p>
 
       <h2 className="sekcja">DELETE /api/scores/&lt;id&gt;</h2>
