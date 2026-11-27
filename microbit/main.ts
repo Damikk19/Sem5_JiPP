@@ -340,8 +340,9 @@ function nickJakoTekst() {
 
 // Ramka radiowa: ID_API;NICK;WYNIK, np. DK;ABC;123 (max 19 znaków).
 // Bramka prowadzącego zamienia ją na POST { "id": "ABC", "wynik": 123 } do naszego API.
+// API przyjmuje wynik 0-99999, więc większego nie wysyłamy (inaczej wynik by przepadł).
 function wyslijWynik(gracz2: string, punkty: number) {
-    radio.sendString(ID_API + ";" + gracz2 + ";" + punkty)
+    radio.sendString(ID_API + ";" + gracz2 + ";" + Math.min(punkty, 99999))
 }
 
 // ---------- Ekrany ----------
