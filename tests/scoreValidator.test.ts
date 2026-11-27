@@ -61,7 +61,11 @@ describe("walidacja wyniku od bramki", () => {
     expect(parse({ id: "👾".repeat(33), wynik: 1 }).ok).toBe(false);
   });
 
-  it.each(["ŻÓŁW", "A B", "gracz-1", "Ünal", "👾"])("przyjmuje zwykły nick: %j", (id) => {
+  it.each([
+    "ŻÓŁW", "A B", "gracz-1", "Ünal", "👾", "👍🏽", "🇵🇱", "❤️",
+    "🧑\u200d💻", "👩🏽\u200d💻", "🏳️\u200d🌈", "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
+    "Москва", "中文", "e\u0301",
+  ])("przyjmuje zwykły nick, także emoji złożone: %j", (id) => {
     expect(parse({ id, wynik: 1 }).ok).toBe(true);
   });
 
@@ -69,18 +73,30 @@ describe("walidacja wyniku od bramki", () => {
     ["NUL", "A\u0000B"],
     ["znak nowej linii w środku", "A\nB"],
     ["tabulator w środku", "A\tB"],
-    ["spacja zerowej szerokości", "\u200b"],
+    ["DEL", "A\u007fB"],
     ["zmiana kierunku tekstu (RLO)", "\u202eNIMDA"],
     ["izolacja kierunku (LRI)", "AB\u2066C"],
-    ["łącznik zerowej szerokości", "A\u200dB"],
+    ["znak kierunku (RLM)", "A\u200fB"],
     ["samotny surogat", "A\ud800"],
     ["separator wierszy", "A\u2028B"],
     ["separator akapitów", "A\u2029B"],
-    ["DEL", "A\u007fB"],
     ["znak z obszaru prywatnego", "A\ue000"],
-  ])("odrzuca id ze znakiem sterującym albo niewidocznym: %s", (_, id) => {
+  ])("odrzuca id ze znakiem sterującym albo zmieniającym kierunek tekstu: %s", (_, id) => {
     const result = parse({ id, wynik: 1 });
-    expect(result).toEqual({ ok: false, error: '"id" nie może zawierać znaków sterujących ani niewidocznych' });
+    expect(result).toEqual({ ok: false, error: '"id" nie może zawierać znaków sterujących ani zmieniających kierunek tekstu' });
+  });
+
+  it.each([
+    ["spacja zerowej szerokości", "\u200b"],
+    ["sam łącznik zerowej szerokości", "\u200d"],
+    ["wypełniacz Hangul", "\u3164"],
+    ["pusty znak Braille'a", "\u2800\u2800"],
+    ["sam znak łączący", "\u0300"],
+    ["selektor wariantu", "\ufe0f"],
+    ["miękki dywiz", "\u00ad"],
+  ])("odrzuca id, które w rankingu byłoby puste: %s", (_, id) => {
+    const result = parse({ id, wynik: 1 });
+    expect(result).toEqual({ ok: false, error: '"id" musi zawierać co najmniej jeden widoczny znak' });
   });
 
   it.each([undefined, "", "   ", null, { a: 1 }])("odrzuca brakujące albo puste id: %s", (id) => {
