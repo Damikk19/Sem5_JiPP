@@ -35,6 +35,8 @@ let LITERY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 // Nick to indeksy liter. Zostaje z poprzedniej gry, żeby ten sam gracz tylko zatwierdzał.
 let nick = [0, 0, 0]
 let pozycjaNicku = 0
+// Litera nicku, która jest teraz na ekranie (-1: jeszcze żadna)
+let pokazanaLitera = -1
 
 let ramy: game.LedSprite[] = []
 let zycia = 3
@@ -65,7 +67,6 @@ input.onButtonPressed(Button.A, function () {
         gracz.change(LedSpriteProperty.X, -1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 25) % 26
-        pokazLitere()
     }
 })
 
@@ -76,7 +77,6 @@ input.onButtonPressed(Button.B, function () {
         gracz.change(LedSpriteProperty.X, 1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 1) % 26
-        pokazLitere()
     }
 })
 
@@ -89,8 +89,6 @@ input.onButtonPressed(Button.AB, function () {
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
             stan = WYSYLKA
-        } else {
-            pokazLitere()
         }
     }
 })
@@ -325,8 +323,10 @@ function koniecGry() {
 // ---------- Nick i wysyłka ----------
 
 function pokazLitere() {
-    // Krótki czas wyświetlania, żeby szybko przewijać litery (domyślnie jedna litera blokuje 0,75 s)
-    basic.showString(LITERY.charAt(nick[pozycjaNicku]), 30)
+    pokazanaLitera = nick[pozycjaNicku]
+    // Krótki czas wyświetlania, żeby przy szybkim przewijaniu pętla szybko pokazała następną literę
+    // (domyślnie jedna litera blokuje 0,75 s)
+    basic.showString(LITERY.charAt(pokazanaLitera), 30)
 }
 
 function nickJakoTekst() {
@@ -383,16 +383,20 @@ basic.forever(function () {
         koniecGry()
         pozycjaNicku = 0
         przewin("NICK")
+        // Pierwszą literę narysuje gałąź wyboru nicku
+        pokazanaLitera = -1
         stan = WYBOR_NICKU
-        pokazLitere()
+    } else if (stan == WYBOR_NICKU) {
+        // Przyciski zmieniają tylko nick, a literę rysujemy tu, kiedy się zmieni
+        if (nick[pozycjaNicku] != pokazanaLitera) {
+            pokazLitere()
+        }
     } else if (stan == WYSYLKA) {
         wyslijWynik(nickJakoTekst(), wynik)
         basic.showIcon(IconNames.Yes)
         basic.pause(500)
         przewin(nickJakoTekst() + " " + wynik)
         stan = TYTUL
-    } else {
-        basic.pause(50)
     }
 })
 
