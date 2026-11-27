@@ -35,6 +35,8 @@ let LITERY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 // Nick to indeksy liter. Zostaje z poprzedniej gry, żeby ten sam gracz tylko zatwierdzał.
 let nick = [0, 0, 0]
 let pozycjaNicku = 0
+// Litera nicku, która jest teraz na ekranie (-1: jeszcze żadna)
+let pokazanaLitera = -1
 
 let ramy: game.LedSprite[] = []
 let zycia = 3
@@ -48,44 +50,50 @@ let klatkaTytulu = 0
 let gcDostepny = true
 let gcTeraz = false
 
+// Ton czekający na wątek dźwięku (tonMs = 0: nic nie czeka)
+let tonHz = 0
+let tonMs = 0
+let melodiaKonca = false
+
 radio.setGroup(GRUPA_RADIA)
 radio.setTransmitPower(7)
 
 // ---------- Przyciski ----------
 
+// W trakcie błysku i GC gra stoi, a silnik niczego nie rysuje, więc przyciski w grze nic wtedy nie robią.
+// Inaczej strzał mógłby trafić niewidocznie, a statek przeskoczyłby dopiero po wznowieniu.
 input.onButtonPressed(Button.A, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, -1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 25) % 26
-        pokazLitere()
     }
 })
 
 input.onButtonPressed(Button.B, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         gracz.change(LedSpriteProperty.X, 1)
     } else if (stan == WYBOR_NICKU) {
         nick[pozycjaNicku] = (nick[pozycjaNicku] + 1) % 26
-        pokazLitere()
     }
 })
 
 input.onButtonPressed(Button.AB, function () {
     if (stan == TYTUL) {
         stan = ODLICZANIE
-    } else if (stan == GRA) {
+    } else if (stan == GRA && !(game.isPaused())) {
         strzel()
     } else if (stan == WYBOR_NICKU) {
         pozycjaNicku += 1
         if (pozycjaNicku >= 3) {
             stan = WYSYLKA
         } else {
-            pokazLitere()
+            // Następna litera bywa taka sama jak poprzednia, więc przejście słychać (coraz wyższy ton)
+            dzwiek(523 + 200 * pozycjaNicku, 60)
         }
     }
 })
@@ -120,7 +128,9 @@ function nowaGra() {
     ostatniRuchPocisku = input.runningTime()
 }
 
-// Jeden krok gry, wołany w pętli co ~10 ms. Każdy element ma własne tempo.
+// Jeden krok gry, wołany w pętli co ok. 36 ms na V1 (ok. 32 ms na V2): pause(10), potem 20 ms przerwy, którą basic.forever
+// robi po każdym obiegu, a planista budzi wątek dopiero w swoim takcie (6 ms na V1, 4 ms na V2).
+// Każdy element ma własne tempo.
 function krokGry() {
     if (gcTeraz) {
         gcTeraz = false
@@ -147,7 +157,6 @@ function strzel() {
         return
     }
     pocisk = game.createSprite(gracz.get(LedSpriteProperty.X), 3)
-    pocisk.set(LedSpriteProperty.Brightness, 255)
     ostatniRuchPocisku = input.runningTime()
     dzwiek(880, 40)
     sprawdzTrafienia()
@@ -179,8 +188,8 @@ function spadanie() {
 function nowyRam() {
     let x = randint(0, 4)
     // Nie stawiamy kości na innej kości w górnym rzędzie
-    for (let ram2 of ramy) {
-        if (!(ram2.isDeleted()) && ram2.get(LedSpriteProperty.Y) == 0 && ram2.get(LedSpriteProperty.X) == x) {
+    for (let innyRam of ramy) {
+        if (!(innyRam.isDeleted()) && innyRam.get(LedSpriteProperty.Y) == 0 && innyRam.get(LedSpriteProperty.X) == x) {
             return
         }
     }
@@ -200,28 +209,28 @@ function sprawdzTrafienia() {
     if (pocisk.isDeleted()) {
         return
     }
-    for (let ram3 of ramy) {
-        if (!(ram3.isDeleted()) && pocisk.isTouching(ram3)) {
+    for (let cel of ramy) {
+        if (!(cel.isDeleted()) && pocisk.isTouching(cel)) {
             pocisk.delete()
-            trafienie(ram3)
+            trafienie(cel)
             return
         }
     }
 }
 
-function trafienie(ram4: game.LedSprite) {
-    if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5) {
+function trafienie(trafiony: game.LedSprite) {
+    if (trafiony.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5) {
         // Pierwsze trafienie w DDR5 tylko ją uszkadza
-        ram4.set(LedSpriteProperty.Brightness, JASNOSC_DDR5_USZKODZONA)
+        trafiony.set(LedSpriteProperty.Brightness, JASNOSC_DDR5_USZKODZONA)
         dzwiek(330, 40)
         return
     }
-    if (ram4.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5_USZKODZONA) {
+    if (trafiony.get(LedSpriteProperty.Brightness) == JASNOSC_DDR5_USZKODZONA) {
         wynik += 3
     } else {
         wynik += 1
     }
-    ram4.delete()
+    trafiony.delete()
     dzwiek(1320, 40)
     // Z każdą zestrzeloną kością gra przyspiesza (tempo dobrane symulacją: partia trwa ok. minuty)
     tempoSpadania = Math.max(300, tempoSpadania - 7)
@@ -229,7 +238,7 @@ function trafienie(ram4: game.LedSprite) {
 }
 
 function stracZycie() {
-    zycia += -1
+    zycia -= 1
     blysk()
     dzwiek(131, 150)
     if (zycia <= 0) {
@@ -254,14 +263,9 @@ function jasnoscGracza() {
 function odpalGC() {
     game.pause()
     dzwiek(660, 300)
-    for (let y = 0; y <= 4; y++) {
-        for (let x2 = 0; x2 <= 4; x2++) {
-            led.plotBrightness(x2, y, 160)
-        }
-        basic.pause(60)
-    }
-    for (let ram7 of ramy) {
-        ram7.delete()
+    zapalEkran(160, 60)
+    for (let smiec of ramy) {
+        smiec.delete()
     }
     pocisk.delete()
     basic.pause(100)
@@ -275,14 +279,22 @@ function odpalGC() {
 // Krótki błysk całego ekranu, kiedy kość "wycieknie" na dół
 function blysk() {
     game.pause()
-    for (let y2 = 0; y2 <= 4; y2++) {
-        for (let x3 = 0; x3 <= 4; x3++) {
-            led.plotBrightness(x3, y2, 120)
-        }
-    }
+    zapalEkran(120, 0)
     basic.pause(120)
     basic.clearScreen()
     game.resume()
+}
+
+// Zapala cały ekran wiersz po wierszu. Przerwa po każdym wierszu daje efekt skanowania od góry.
+function zapalEkran(jasnosc: number, przerwa: number) {
+    for (let wiersz = 0; wiersz <= 4; wiersz++) {
+        for (let kolumna = 0; kolumna <= 4; kolumna++) {
+            led.plotBrightness(kolumna, wiersz, jasnosc)
+        }
+        if (przerwa > 0) {
+            basic.pause(przerwa)
+        }
+    }
 }
 
 // Przewija tekst szybciej niż domyślnie (domyślne "OUT OF MEMORY" trwałoby ok. 12 s)
@@ -293,25 +305,27 @@ function przewin(tekst: string) {
 // Usuwa z listy kości, które zostały zestrzelone albo doleciały na dół
 function posprzataj() {
     let zostaja: game.LedSprite[] = []
-    for (let ram5 of ramy) {
-        if (!(ram5.isDeleted())) {
-            zostaja.push(ram5)
+    for (let kosc of ramy) {
+        if (!(kosc.isDeleted())) {
+            zostaja.push(kosc)
         }
     }
     ramy = zostaja
 }
 
 function koniecGry() {
-    for (let ram6 of ramy) {
-        ram6.delete()
+    for (let pozostaly of ramy) {
+        pozostaly.delete()
     }
     ramy = []
     pocisk.delete()
     gracz.delete()
-    // Silnik gier odświeża ekran co 30 ms, więc wstrzymujemy go, żeby nie zamazał napisów
+    // Silnik game rysuje duszki co ok. 54 ms: czeka tylko, aż wyświetlacz skończy animację, i rysuje swoje.
+    // Bez pauzy zamazałby to, co zostaje na ekranie po animacji: literę nicku, znaczek wysyłki, klatki tytułu.
     game.pause()
     basic.clearScreen()
-    music.startMelody(music.builtInMelody(Melodies.Wawawawaa), MelodyOptions.Once)
+    // Melodię puści wątek dźwięku (na dole pliku)
+    melodiaKonca = true
     przewin("OUT OF MEMORY")
     przewin("" + wynik)
 }
@@ -319,8 +333,10 @@ function koniecGry() {
 // ---------- Nick i wysyłka ----------
 
 function pokazLitere() {
-    // Krótki czas wyświetlania, żeby szybko przewijać litery (domyślnie jedna litera blokuje 0,75 s)
-    basic.showString(LITERY.charAt(nick[pozycjaNicku]), 30)
+    pokazanaLitera = nick[pozycjaNicku]
+    // Krótki czas wyświetlania, żeby przy szybkim przewijaniu pętla szybko pokazała następną literę
+    // (domyślnie jedna litera blokuje 0,75 s)
+    basic.showString(LITERY.charAt(pokazanaLitera), 30)
 }
 
 function nickJakoTekst() {
@@ -329,8 +345,9 @@ function nickJakoTekst() {
 
 // Ramka radiowa: ID_API;NICK;WYNIK, np. DK;ABC;123 (max 19 znaków).
 // Bramka prowadzącego zamienia ją na POST { "id": "ABC", "wynik": 123 } do naszego API.
-function wyslijWynik(gracz2: string, punkty: number) {
-    radio.sendString(ID_API + ";" + gracz2 + ";" + punkty)
+// API przyjmuje wynik 0-99999, więc większego nie wysyłamy (inaczej wynik by przepadł).
+function wyslijWynik(nickGracza: string, punkty: number) {
+    radio.sendString(ID_API + ";" + nickGracza + ";" + Math.min(punkty, 99999))
 }
 
 // ---------- Ekrany ----------
@@ -356,8 +373,8 @@ function klatkaRamu() {
     klatkaTytulu = 1 - klatkaTytulu
 }
 
-// Cały ekran rysuje ta jedna pętla, a przyciski tylko zmieniają stan.
-// Dzięki temu animacje nie nachodzą na siebie.
+// Napisy, litery i animacje rysuje tylko ta pętla, a przyciski tylko zmieniają stan
+// (w grze przesuwają duszki, które rysuje silnik game). Dzięki temu animacje nie nachodzą na siebie.
 basic.forever(function () {
     if (stan == INTRO) {
         przewin("RAM INVADERS")
@@ -372,27 +389,57 @@ basic.forever(function () {
         stan = GRA
     } else if (stan == GRA) {
         krokGry()
+        // Razem z przerwą basic.forever krok wypada co ok. 36 ms na V1, 32 ms na V2 (opis przy krokGry)
         basic.pause(10)
     } else if (stan == KONIEC) {
         koniecGry()
         pozycjaNicku = 0
         przewin("NICK")
+        // Pierwszą literę narysuje gałąź wyboru nicku
+        pokazanaLitera = -1
         stan = WYBOR_NICKU
-        pokazLitere()
+    } else if (stan == WYBOR_NICKU) {
+        // Przyciski zmieniają tylko nick, a literę rysujemy tu, kiedy się zmieni
+        if (nick[pozycjaNicku] != pokazanaLitera) {
+            pokazLitere()
+        }
     } else if (stan == WYSYLKA) {
         wyslijWynik(nickJakoTekst(), wynik)
         basic.showIcon(IconNames.Yes)
         basic.pause(500)
         przewin(nickJakoTekst() + " " + wynik)
         stan = TYTUL
-    } else {
-        basic.pause(50)
     }
 })
 
-// Krótki dźwięk bez zatrzymywania gry
+// ---------- Dźwięk ----------
+
+// Dźwięki gra jeden wątek na całą grę: dzwiek() tylko zapisuje ton, a gra go pętla niżej
+// (gdy nic nie gra, najpóźniej po ok. 24 ms). Każdy ton gra do końca, więc strzał nie ucina
+// dźwięku utraty życia, a gra nie tworzy nowego wątku przy każdym dźwięku (na V1 jest mało pamięci).
 function dzwiek(czestotliwosc: number, czas: number) {
-    control.inBackground(function () {
-        music.playTone(czestotliwosc, czas)
-    })
+    // Dłuższy dźwięk (utrata życia, GC) jest ważniejszy, więc krótszy go nie zastępuje
+    if (czas >= tonMs) {
+        tonHz = czestotliwosc
+        tonMs = czas
+    }
 }
+
+basic.forever(function () {
+    if (tonMs > 0) {
+        let dlugosc = tonMs
+        tonMs = 0
+        music.playTone(tonHz, dlugosc)
+    } else if (melodiaKonca) {
+        // Melodia końca gry: te same nuty co wbudowana "wawawawaa" (E, D#, D, Cis). Wbudowane melodie
+        // wciągają cały silnik melodii, a z nim gra nie mieści się na micro:bicie V1.
+        melodiaKonca = false
+        music.playTone(330, 375)
+        basic.pause(125)
+        music.playTone(311, 375)
+        basic.pause(125)
+        music.playTone(294, 500)
+        basic.pause(125)
+        music.playTone(277, 1000)
+    }
+})
