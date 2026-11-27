@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const raw = Number(request.nextUrl.searchParams.get("limit") ?? 10);
+  // Brak albo puste ?limit= daje domyślne 10 (Number("") to 0, które podniosłoby limit do 1)
+  const param = request.nextUrl.searchParams.get("limit")?.trim();
+  const raw = param ? Number(param) : 10;
   const limit = Number.isInteger(raw) ? Math.min(Math.max(raw, 1), 100) : 10;
 
   // ?sort=latest zwraca ostatnie gry, domyślnie ranking od najlepszego wyniku.

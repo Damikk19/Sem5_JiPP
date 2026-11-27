@@ -100,6 +100,8 @@ describe("GET /api/scores (ranking)", () => {
     ["1000", 100],
     ["abc", 10],
     ["2.5", 10],
+    ["", 10],
+    ["%20", 10],
   ])("limit=%s pobiera %s wyników", async (limit, oczekiwany) => {
     vi.mocked(repo.getTop).mockResolvedValue([]);
     await GET(new NextRequest(`${ADRES}?limit=${limit}`));
