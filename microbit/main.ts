@@ -6,7 +6,7 @@
 // DDR5 (jasna) potrzebuje 2 trafień i daje 3 pkt.
 // Kość, która doleci do dolnego rzędu, zabiera życie. Jasność statku = liczba żyć.
 // Potrząśnięcie = Garbage Collector: raz na grę czyści z ekranu wszystkie kości.
-// Po grze wybierasz nick z 3 liter (A/B zmienia literę, A+B zatwierdza),
+// Po grze wybierasz nick z 3 liter (przed każdą literą jej numer, A/B zmienia literę, A+B zatwierdza),
 // a wynik leci radiem do bramki prowadzącego, która wysyła go do naszego API.
 
 let gracz: game.LedSprite = null
@@ -37,6 +37,8 @@ let nick = [0, 0, 0]
 let pozycjaNicku = 0
 // Litera nicku, która jest teraz na ekranie (-1: jeszcze żadna)
 let pokazanaLitera = -1
+// Pozycja nicku, której numer był ostatnio pokazany (-1: jeszcze żadna)
+let pokazanaPozycja = -1
 
 let ramy: game.LedSprite[] = []
 let zycia = 3
@@ -332,6 +334,14 @@ function koniecGry() {
 
 // ---------- Nick i wysyłka ----------
 
+// Numer litery (1, 2, 3) przed samą literą, żeby było widać, którą literę nicku się wybiera
+function pokazNumerLitery() {
+    pokazanaPozycja = pozycjaNicku
+    // Po numerze trzeba znowu narysować literę
+    pokazanaLitera = -1
+    basic.showString("" + (pozycjaNicku + 1), 80)
+}
+
 function pokazLitere() {
     pokazanaLitera = nick[pozycjaNicku]
     // Krótki czas wyświetlania, żeby przy szybkim przewijaniu pętla szybko pokazała następną literę
@@ -395,12 +405,16 @@ basic.forever(function () {
         koniecGry()
         pozycjaNicku = 0
         przewin("NICK")
-        // Pierwszą literę narysuje gałąź wyboru nicku
+        // Numer i pierwszą literę narysuje gałąź wyboru nicku
+        pokazanaPozycja = -1
         pokazanaLitera = -1
         stan = WYBOR_NICKU
     } else if (stan == WYBOR_NICKU) {
-        // Przyciski zmieniają tylko nick, a literę rysujemy tu, kiedy się zmieni
-        if (nick[pozycjaNicku] != pokazanaLitera) {
+        // Przyciski zmieniają tylko nick, a rysujemy tu: po zmianie pozycji jej numer, potem literę, kiedy się zmieni.
+        // Najwyżej jedno rysowanie na obieg, bo w jego trakcie A+B może zatwierdzić ostatnią literę (wtedy stan to już WYSYLKA).
+        if (pozycjaNicku != pokazanaPozycja) {
+            pokazNumerLitery()
+        } else if (nick[pozycjaNicku] != pokazanaLitera) {
             pokazLitere()
         }
     } else if (stan == WYSYLKA) {
