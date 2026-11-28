@@ -9,7 +9,7 @@ import { createPortal } from "react-dom";
 import { DUZY_EKRAN, moznaPokazac, OGRANICZONY_RUCH } from "@/lib/atrakcja";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
-import { komunikatGry, komunikatRekordu, POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
+import { komunikatGry, komunikatRekordu, POCZATEK, przyjmij, ukrycie, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
 import Demo from "./demo";
 import NowyRekord from "./nowy-rekord";
@@ -81,6 +81,18 @@ export default function Leaderboard() {
     const { widok: w, dzwiek } = zamknij(widokRef.current);
     pokazWidok(w, dzwiek, true);
   }, [pokazWidok]);
+
+  // Przejście na inną podstronę: Next.js chowa stronę rankingu zamiast ją odmontować (zachowuje stan), więc ekran
+  // rekordu zamyka się tutaj, żeby nie wrócił po „wstecz” albo „dalej”. Przy samym zamontowaniu nic się nie dzieje.
+  useLayoutEffect(
+    () => () => {
+      const w = ukrycie(widokRef.current);
+      if (w === widokRef.current) return;
+      widokRef.current = w;
+      setWidok(w);
+    },
+    [],
+  );
 
   useEffect(() => {
     // Pierwsze dane po wejściu na stronę (albo po powrocie z innej podstrony) wchodzą bez przesuwania

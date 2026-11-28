@@ -85,6 +85,14 @@ export function zamknij(w: Widok): { widok: Widok; dzwiek: Dzwiek } {
   };
 }
 
+// Strona schowana (przejście na inną podstronę; Next.js trzyma ją ukrytą, żeby zachować stan): ekran rekordu
+// się zamyka, a dane, które czekały, wchodzą do tabeli bez wyróżnień. Po „wstecz” albo „dalej” nic stąd nie wraca.
+export function ukrycie(w: Widok): Widok {
+  const tabela = w.czeka ?? w.tabela;
+  if (!w.rekord && !tabela?.nowe.length && !tabela?.rekord) return w;
+  return { tabela: tabela && { dane: tabela.dane, nowe: [], rekord: null }, rekord: null, czeka: null, zagrane: [] };
+}
+
 // Komunikaty dla czytnika ekranu (regiony aria-live). O rekordzie mówi osobny region poza stroną, bo pod
 // ekranem rekordu strona jest nieaktywna (inert) razem ze swoimi regionami. O zwykłej grze mówi region w tabeli.
 

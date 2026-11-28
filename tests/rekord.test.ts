@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ranking } from "@/lib/odswiezanie";
-import { komunikatGry, komunikatRekordu, nowyRekord, POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
+import { komunikatGry, komunikatRekordu, nowyRekord, POCZATEK, przyjmij, ukrycie, zamknij, type Widok } from "@/lib/rekord";
 import type { Score } from "@/lib/score";
 
 // Kiedy strona świętuje NEW HIGH SCORE (WF-18) i w jakiej kolejności pokazuje dane
@@ -314,6 +314,37 @@ describe("zamknięcie ekranu rekordu", () => {
     const { widok, dzwiek } = przyjmij(poZamknieciu, ranking(A, B, C, D, E), ["E"]);
     expect(widok.rekord).toBeNull();
     expect(dzwiek).toBe("nowa-gra");
+  });
+});
+
+describe("strona schowana (przejście na inną podstronę)", () => {
+  it("otwarty ekran rekordu się zamyka, czekające dane wchodzą do tabeli bez wyróżnień i komunikatów", () => {
+    const D = gra("D", 500, 4);
+    const E = gra("E", 20, 5);
+    let w = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
+    w = przyjmij(w, ranking(A, B, C, D, E), ["E"]).widok;
+    const schowana = ukrycie(w);
+    expect(schowana.rekord).toBeNull();
+    expect(schowana.czeka).toBeNull();
+    expect(schowana.tabela?.dane.top.map((g) => g.id)).toEqual(["D", "A", "B", "E", "C"]);
+    expect(schowana.tabela?.nowe).toEqual([]);
+    expect(komunikatRekordu(schowana)).toBe("");
+    expect(komunikatGry(schowana)).toBe("");
+  });
+
+  it("wyróżnienie po zamkniętym rekordzie i po zwykłej grze znika", () => {
+    const D = gra("D", 500, 4);
+    const poRekordzie = zamknij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok).widok;
+    expect(ukrycie(poRekordzie).tabela).toEqual({ dane: poRekordzie.tabela?.dane, nowe: [], rekord: null });
+    const F = gra("F", 30, 6);
+    const poGrze = przyjmij(poStarcie(), ranking(A, B, C, F), ["F"]).widok;
+    expect(ukrycie(poGrze).tabela?.nowe).toEqual([]);
+  });
+
+  it("bez ekranu i wyróżnień nic się nie zmienia (ten sam obiekt)", () => {
+    const start = poStarcie();
+    expect(ukrycie(start)).toBe(start);
+    expect(ukrycie(POCZATEK)).toBe(POCZATEK);
   });
 });
 
