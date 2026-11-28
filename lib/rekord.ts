@@ -14,8 +14,9 @@ export function nowyRekord(top: Score[], nowe: string[], dotychczasowy: number):
   return pierwszy.score > dotychczasowy ? pierwszy : null;
 }
 
-// Dane do tabeli razem z grami, które w nich migają, i rekordem, który je przyniósł
-export type Paczka = { dane: Ranking; nowe: string[]; rekord: Score | null };
+// Dane do tabeli razem z grami, które w nich migają, i rekordem, który je przyniósł.
+// trzyma: wyróżnienie zostaje do pytania, które przyniesie nowe gry (dane po zamknięciu ekranu rekordu).
+export type Paczka = { dane: Ranking; nowe: string[]; rekord: Score | null; trzyma?: boolean };
 
 // Co widać na stronie. Kiedy przychodzi rekord, pod ekranem rekordu zostaje stara tabela, a nowe dane
 // czekają na jego zamknięcie: dopiero wtedy wiersze przesuwają się w dół, więc widać, co się zmieniło.
@@ -43,6 +44,11 @@ export function przyjmij(w: Widok, dane: Ranking, nowe: string[]): { widok: Wido
   if (rekord) {
     return { widok: { tabela: w.tabela, rekord, czeka: { dane, nowe, rekord } }, dzwiek: "rekord" };
   }
+  // Po zamknięciu ekranu rekordu kolejne pytanie przychodzi zwykle zaraz (oba czasy liczą się od tej samej
+  // odpowiedzi): bez nowych gier wyróżnienie i komunikat zostają, żeby rekord mignął w całości
+  if (nowe.length === 0 && w.tabela?.trzyma) {
+    return { widok: { ...w, tabela: { ...w.tabela, dane } }, dzwiek: null };
+  }
   return {
     widok: { tabela: { dane, nowe, rekord: null }, rekord: null, czeka: null },
     dzwiek: nowe.length > 0 ? "nowa-gra" : null,
@@ -55,5 +61,5 @@ export function zamknij(w: Widok): { widok: Widok; dzwiek: Dzwiek } {
   const { rekord, czeka } = w;
   if (!rekord || !czeka) return { widok: w, dzwiek: null };
   const inne = czeka.nowe.some((id) => id !== rekord.id);
-  return { widok: { tabela: czeka, rekord: null, czeka: null }, dzwiek: inne ? "nowa-gra" : null };
+  return { widok: { tabela: { ...czeka, trzyma: true }, rekord: null, czeka: null }, dzwiek: inne ? "nowa-gra" : null };
 }
