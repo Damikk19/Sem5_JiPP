@@ -8,7 +8,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { DUZY_EKRAN, moznaPokazac, OGRANICZONY_RUCH } from "@/lib/atrakcja";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
-import { POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
+import { komunikat, POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
 import Demo from "./demo";
 import NowyRekord from "./nowy-rekord";
@@ -138,15 +138,8 @@ export default function Leaderboard() {
   const last = widok.tabela?.dane.latest[0] ?? null;
   const nowe = widok.tabela?.nowe ?? [];
   const rekord = top[0];
-  // Rekord z otwartego ekranu albo ten, który przyniósł dane w tabeli: po zamknięciu ekranu komunikat
-  // się nie zmienia, więc czytnik ekranu nie czyta go drugi raz
-  const swietowany = widok.rekord ?? widok.tabela?.rekord ?? null;
   const wiersze = Array.from({ length: TOP }, (_, i) => top[i] ?? null);
   const nowy = (wynik: Score | null | undefined) => (wynik && nowe.includes(wynik.id) ? "miga-nowy" : "");
-
-  let komunikat = "";
-  if (swietowany) komunikat = `Nowy rekord: ${swietowany.playerId}, ${swietowany.score} pkt`;
-  else if (last && nowe.includes(last.id)) komunikat = `Nowy wynik: ${last.playerId}, ${last.score} pkt`;
 
   return (
     <section className="ranking">
@@ -219,7 +212,7 @@ export default function Leaderboard() {
         </button>
         {/* Dla czytnika ekranu: miganie i ekran rekordu widać tylko na ekranie */}
         <p className="sr-only" aria-live="polite">
-          {komunikat}
+          {komunikat(widok)}
         </p>
 
         {pokaz.pokaz && <Demo key={pokaz.seria} seria={pokaz.seria} />}

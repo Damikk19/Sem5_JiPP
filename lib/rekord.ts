@@ -79,3 +79,13 @@ export function zamknij(w: Widok): { widok: Widok; dzwiek: Dzwiek } {
     dzwiek: bezDzwieku ? "nowa-gra" : null,
   };
 }
+
+// Komunikat dla czytnika ekranu (region aria-live). Rekord z otwartego ekranu albo ten, który przyniósł dane
+// w tabeli: po zamknięciu ekranu tekst się nie zmienia, więc czytnik nie czyta go drugi raz.
+export function komunikat(w: Widok) {
+  const rekord = w.rekord ?? w.tabela?.rekord;
+  if (rekord) return `Nowy rekord: ${rekord.playerId}, ${rekord.score} pkt`;
+  const ostatnia = w.tabela?.dane.latest[0];
+  if (ostatnia && w.tabela?.nowe.includes(ostatnia.id)) return `Nowy wynik: ${ostatnia.playerId}, ${ostatnia.score} pkt`;
+  return "";
+}
