@@ -3,11 +3,13 @@
 // Ranking na żywo: co 5 sekund pyta API o TOP 10 i ostatnie gry (jedno żądanie).
 // Wygląd jak tablica HIGH SCORES na automacie. Tabela ma zawsze 10 wierszy,
 // więc nic nie skacze, kiedy pojawia się pierwszy wynik. Nowe wyniki migają, a wiersze, które zmieniły
-// miejsce, przeskakują na nowe.
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+// miejsce, przeskakują na nowe. Rekord ma własny ekran.
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
+import { POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
+import NowyRekord from "./nowy-rekord";
 
 const TOP = 10;
 const CYFRY = String(MAX_SCORE).length;
@@ -42,14 +44,25 @@ function pozycje(tbody: HTMLTableSectionElement | null) {
 }
 
 export default function Leaderboard() {
-  const [top, setTop] = useState<Score[]>([]);
-  const [last, setLast] = useState<Score | null>(null);
+  const [widok, setWidok] = useState<Widok>(POCZATEK);
+  const widokRef = useRef<Widok>(POCZATEK);
   const [status, setStatus] = useState<Status>("loading");
   const [czuwanie, setCzuwanie] = useState(false);
-  const [nowe, setNowe] = useState<string[]>([]);
   const tbody = useRef<HTMLTableSectionElement>(null);
   // Pozycje wierszy tuż przed zmianą danych w tabeli (FLIP), null = bez przesuwania
   const przed = useRef<Map<string, number> | null>(null);
+
+
+  const pokazWidok = useCallback((w: Widok, przesun: boolean) => {
+    // Pozycje „przed” trzeba zmierzyć, zanim React podmieni wiersze
+    if (w.tabela !== widokRef.current.tabela) przed.current = przesun ? pozycje(tbody.current).mapa : null;
+    widokRef.current = w;
+    setWidok(w);
+  }, []);
+
+  const zamknijRekord = useCallback(() => {
+    pokazWidok(zamknij(widokRef.current).widok, true);
+  }, [pokazWidok]);
 
   useEffect(() => {
     // Pierwsze dane po wejściu na stronę (albo po powrocie z innej podstrony) wchodzą bez przesuwania
@@ -62,12 +75,8 @@ export default function Leaderboard() {
       },
       ukryta: () => document.hidden,
       naDane: (dane, noweId) => {
-        // Pozycje „przed” trzeba zmierzyć, zanim React podmieni wiersze
-        przed.current = pierwsze ? null : pozycje(tbody.current).mapa;
+        pokazWidok(przyjmij(widokRef.current, dane, noweId).widok, !pierwsze);
         pierwsze = false;
-        setNowe((poprzednie) => (poprzednie.length === 0 && noweId.length === 0 ? poprzednie : noweId));
-        setTop(dane.top);
-        setLast(dane.latest[0] ?? null);
         setStatus("live");
       },
       naBlad: () => setStatus("offline"),
@@ -83,7 +92,7 @@ export default function Leaderboard() {
       window.removeEventListener("pointerdown", petla.ruch);
       window.removeEventListener("keydown", petla.ruch);
     };
-  }, []);
+  }, [pokazWidok]);
 
   // FLIP: wiersze startują z miejsca sprzed zmiany i przeskakują na nowe (przed narysowaniem klatki).
   // Bez ruchu przy ograniczonym ruchu i w karcie w tle.
@@ -104,11 +113,21 @@ export default function Leaderboard() {
     return () => {
       for (const a of animacje) a.cancel();
     };
-  }, [top]);
+  }, [widok.tabela]);
 
+  const top = widok.tabela?.dane.top ?? [];
+  const last = widok.tabela?.dane.latest[0] ?? null;
+  const nowe = widok.tabela?.nowe ?? [];
   const rekord = top[0];
+  // Rekord z otwartego ekranu albo ten, który przyniósł dane w tabeli: po zamknięciu ekranu komunikat
+  // się nie zmienia, więc czytnik ekranu nie czyta go drugi raz
+  const swietowany = widok.rekord ?? widok.tabela?.rekord ?? null;
   const wiersze = Array.from({ length: TOP }, (_, i) => top[i] ?? null);
   const nowy = (wynik: Score | null | undefined) => (wynik && nowe.includes(wynik.id) ? "miga-nowy" : "");
+
+  let komunikat = "";
+  if (swietowany) komunikat = `Nowy rekord: ${swietowany.playerId}, ${swietowany.score} pkt`;
+  else if (last && nowe.includes(last.id)) komunikat = `Nowy wynik: ${last.playerId}, ${last.score} pkt`;
 
   return (
     <section className="ranking">
@@ -176,11 +195,15 @@ export default function Leaderboard() {
           {status === "live" && czuwanie && "CZUWANIE · KLIKNIJ"}
           {status === "live" && !czuwanie && (top.length === 0 ? "ZAGRAJ PIERWSZY NA MICRO:BICIE" : "GRAJ NA MICRO:BICIE")}
         </p>
-        {/* Dla czytnika ekranu: miganie widać tylko na ekranie */}
+        {/* Dla czytnika ekranu: miganie i ekran rekordu widać tylko na ekranie */}
         <p className="sr-only" aria-live="polite">
-          {last && nowe.includes(last.id) ? `Nowy wynik: ${last.playerId}, ${last.score} pkt` : ""}
+          {komunikat}
         </p>
       </div>
+
+      {widok.rekord && (
+        <NowyRekord nick={widok.rekord.playerId} wynik={punkty(widok.rekord.score)} zamknij={zamknijRekord} />
+      )}
     </section>
   );
 }

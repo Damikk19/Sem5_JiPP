@@ -28,11 +28,12 @@ body {
   font-family: ui-monospace, monospace;
 }
 
-/* Linie kineskopu i lekko przyciemnione rogi, nałożone na całą stronę */
+/* Linie kineskopu i lekko przyciemnione rogi, nałożone na całą stronę (także na ekran rekordu) */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
+  z-index: 20;
   pointer-events: none;
   background:
     repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px),
@@ -193,6 +194,71 @@ body::after {
   color: var(--led);
 }
 
+/* ---------- NEW HIGH SCORE: cały ekran, poza powiększeniem trybu TV ---------- */
+/* Rozmiary fontu w wielokrotnościach 8 px, żeby pixelowy font był ostry */
+
+.rekord {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 16px;
+  background: var(--background);
+  font-family: var(--font-press-start), monospace;
+  line-height: 1.6;
+  text-align: center;
+  -webkit-font-smoothing: none;
+  cursor: pointer;
+}
+
+.rekord p {
+  margin: 0;
+  max-width: 100%;
+}
+
+/* Napis przeskakuje po kolorach kolejnych miejsc w rankingu */
+.rekord-tytul {
+  font-size: 16px;
+  color: var(--led);
+  animation: kolory-rankingu 1s steps(1) infinite;
+}
+
+@keyframes kolory-rankingu {
+  0% { color: var(--led); }
+  20% { color: var(--orange); }
+  40% { color: var(--yellow); }
+  60% { color: var(--green); }
+  80% { color: var(--cyan); }
+}
+
+/* Długi nick (do 32 znaków) przycięty wielokropkiem, wynik zawsze w całości */
+.rekord-gracz {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  font-size: 16px;
+  color: var(--foreground);
+}
+
+.rekord-gracz bdi {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rekord-gracz span {
+  flex: none;
+}
+
+@media (min-width: 481px) {
+  .rekord-tytul { font-size: 24px; }
+}
+
 @keyframes zacheta {
   70% { opacity: 0; }
 }
@@ -274,6 +340,9 @@ body::after {
   .tabela .naglowek { margin-top: 0; }
   .sterowanie { grid-area: sterowanie; }
   .stopka { grid-area: stopka; }
+
+  .rekord-tytul { font-size: 32px; }
+  .rekord-gracz { font-size: 24px; }
 }
 
 @media (min-width: 1500px) and (min-height: 960px) {
@@ -282,6 +351,9 @@ body::after {
 
 @media (min-width: 1800px) and (min-height: 1050px) {
   .ekran { --zoom: 1.5; }
+
+  .rekord-tytul { font-size: 48px; }
+  .rekord-gracz { font-size: 32px; }
 }
 
 @media (min-width: 2400px) and (min-height: 1400px) {
@@ -292,7 +364,8 @@ body::after {
   .dioda.klatka-a,
   .dioda.klatka-b,
   .miga-nowy,
-  .zacheta {
+  .zacheta,
+  .rekord-tytul {
     animation: none;
   }
 
