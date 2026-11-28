@@ -343,6 +343,17 @@ describe("komunikaty dla czytnika ekranu", () => {
     expect(komunikatGry(w)).toBe("");
   });
 
+  it("zamknięty rekord, a potem nowy rekord: komunikat o nowym", () => {
+    const D = gra("D", 500, 4);
+    const E = gra("E", 900, 5);
+    // D zamknięty, jego wyróżnienie jeszcze trwa, gdy przychodzi E
+    const poD = zamknij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok).widok;
+    const { widok, dzwiek } = przyjmij(poD, ranking(A, B, C, D, E), ["E"]);
+    expect(widok.rekord).toEqual(E);
+    expect(dzwiek).toBe("rekord");
+    expect(komunikatRekordu(widok)).toBe("Nowy rekord: E, 900 pkt");
+  });
+
   it("wyższy rekord w trakcie zmienia komunikat", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 900, 5);
