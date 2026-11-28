@@ -82,6 +82,7 @@ function atrapa(teraz: number) {
     },
   });
   const oscylatory: ReturnType<typeof oscylator>[] = [];
+  const glosnosci: { gain: { punkty: [string, number, number][] } }[] = [];
   const ctx = {
     currentTime: teraz,
     destination,
@@ -91,14 +92,24 @@ function atrapa(teraz: number) {
       return o;
     },
     createGain() {
-      return {
-        gain: { setValueAtTime: () => {}, linearRampToValueAtTime: () => {} },
+      const g = {
+        gain: {
+          punkty: [] as [string, number, number][],
+          setValueAtTime(v: number, t: number) {
+            this.punkty.push(["set", t, v]);
+          },
+          linearRampToValueAtTime(v: number, t: number) {
+            this.punkty.push(["ramp", t, v]);
+          },
+        },
         connect: (cel: unknown) => zdarzenia.push(cel === destination ? "głośność->wyjście" : "głośność->?"),
         disconnect: () => zdarzenia.push("głośność odłączona"),
       };
+      glosnosci.push(g);
+      return g;
     },
   };
-  return { ctx: ctx as unknown as KontekstDzwieku, oscylatory, zdarzenia };
+  return { ctx: ctx as unknown as KontekstDzwieku, oscylatory, glosnosci, zdarzenia };
 }
 
 describe("zagranie w Web Audio", () => {
@@ -114,6 +125,27 @@ describe("zagranie w Web Audio", () => {
     });
     expect(zdarzenia.filter((z) => z === "osc->głośność")).toHaveLength(4);
     expect(zdarzenia.filter((z) => z === "głośność->wyjście")).toHaveLength(4);
+  });
+
+  it("głośność każdej nuty idzie po obwiedni: od zera, rampą w górę, rampą do zera na końcu nuty (bez trzasków)", () => {
+    const { ctx, oscylatory, glosnosci } = atrapa(10);
+    const nuty = harmonogram("rekord");
+    zagraj(ctx, nuty);
+    expect(glosnosci).toHaveLength(nuty.length);
+    glosnosci.forEach((g, i) => {
+      const start = 10 + OPOZNIENIE;
+      const oczekiwane = obwiednia(nuty[i]).map(([t, v], j) => [j === 0 ? "set" : "ramp", start + t, v]);
+      expect(g.gain.punkty).toHaveLength(oczekiwane.length);
+      g.gain.punkty.forEach(([rodzaj, t, v], j) => {
+        expect(rodzaj).toBe(oczekiwane[j][0]);
+        expect(t).toBeCloseTo(oczekiwane[j][1] as number, 9);
+        expect(v).toBe(oczekiwane[j][2]);
+      });
+      // cisza w chwili startu i zatrzymania oscylatora
+      expect(g.gain.punkty[0][1]).toBeCloseTo(oscylatory[i].poczatek, 9);
+      expect(g.gain.punkty.at(-1)?.[1]).toBeCloseTo(oscylatory[i].koniec, 9);
+      expect(g.gain.punkty.at(-1)?.[2]).toBe(0);
+    });
   });
 
   it("pierwsza nuta nie zaczyna się w przeszłości", () => {
