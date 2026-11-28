@@ -28,7 +28,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | Nr | Wymaganie |
 | --- | --- |
 | WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`, zanim przeczyta body. Body większe niż 1024 bajty dostaje `413` (według `Content-Length` albo po przeczytaniu 1024 bajtów, gdy nagłówka nie ma). |
-| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
+| WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem i bez niewidocznych znaków (spacja zerowej szerokości, miękki dywiz, BOM, wypełniacze; ZWJ, selektory wariantów i znaki tagów tylko jako części emoji), `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
 | WF-10 | API zapisuje wynik w bazie (`201`). Unikalne `id` wpisu i czas zapisu nadaje baza. Zapis z tym samym wynikiem co ostatni wpis tego nicku z ostatnich 30 s to ta sama gra: API odpowiada `200` z tym wpisem i nie dopisuje drugiego. Za częste zapisy dostają `429` z `Retry-After` (limity niżej, w wymaganiach niefunkcjonalnych). |
 | WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100 z samych cyfr, większa wartość jest przycinana do 100, a 0 do 1; brak albo coś innego, także liczba ujemna, daje 10). Odpowiedź może być do ok. 10 s stara (cache CDN). |
 | WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`), a dla strony TOP 10 i ostatnie gry w jednym żądaniu (`GET /api/ranking`). Też z cache CDN (do ok. 10 s). |
@@ -86,14 +86,14 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 
 | Pole | Typ | Opis |
 | --- | --- | --- |
-| `id` | tekst | identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku) |
+| `id` | tekst | identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem i bez niewidocznych znaków (emoji, także złożone, są w porządku) |
 | `wynik` | liczba całkowita | 0–99999, może przyjść jako tekst z samych cyfr (`"123"`) |
 
 ### 3. ScoreDto (powstaje w API po walidacji)
 
 | Pole | Typ | Skąd |
 | --- | --- | --- |
-| `playerId` | string | z pola `id` |
+| `playerId` | string | z pola `id`: bez spacji na brzegach, w postaci NFC, twarde i inne spacje zamienione na zwykłą |
 | `score` | number | z pola `wynik` |
 
 ### 4. Wiersz tabeli `scores` (powstaje w bazie)

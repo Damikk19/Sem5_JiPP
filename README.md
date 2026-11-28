@@ -27,7 +27,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 
 Klucz w konfiguracji musi mieć co najmniej 32 znaki, a `ADMIN_TOKEN` musi być inny niż `API_TOKEN`. Krótszy klucz serwer traktuje jak brak klucza, a przy dwóch takich samych blokuje usuwanie. Wtedy operacja odpowiada `500` z ogólnym komunikatem `Błąd konfiguracji serwera`, a to, który klucz i dlaczego, jest tylko w logu serwera.
 
-- `id` to identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku)
+- `id` to identyfikator gracza (nick), 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku). Bez niewidocznych znaków w dowolnym miejscu (np. spacja zerowej szerokości, miękki dywiz, BOM, wypełniacz Hangul): `400`. Łącznik ZWJ, selektor wariantu i znaki tagów są dozwolone tylko jako części emoji (👩‍💻, ❤️, flaga Szkocji). API zapisuje nick w jednej postaci: litery złożone (NFC, `ë` jako jeden znak) i zwykłe spacje zamiast twardych, więc ten sam napis to zawsze ten sam nick
 - `wynik` to liczba całkowita 0–99999 (może przyjść też jako tekst z samych cyfr, np. `"50"`; `"1e3"` czy `"12.5"` są odrzucane)
 - odpowiedź `201` z zapisanym wynikiem, `200` z istniejącym wpisem, gdy ta sama gra przyszła drugi raz (duplikat), `400` z opisem błędu, `401` bez klucza, `413` przy body większym niż 1024 bajty, `429` z nagłówkiem `Retry-After` przy przekroczeniu limitu zapisów albo `500` przy błędzie serwera
 
@@ -97,7 +97,7 @@ Pojedyncze wpisy usuwa `npm run usun -- <id>`. Ranking na stronie odświeży si�
 
 `npm test` uruchamia testy (Vitest):
 
-- `tests/scoreValidator.test.ts` - umowa z bramką: format `{ id, wynik }`, granice zakresu, wynik jako tekst
+- `tests/scoreValidator.test.ts` - umowa z bramką: format `{ id, wynik }`, granice zakresu, wynik jako tekst, nick w jednej postaci, niewidoczne znaki odrzucane i emoji złożone dalej przyjmowane
 - `tests/auth.test.ts` - klucze: brak albo za krótki klucz na serwerze blokuje operację, ten sam klucz w obu zmiennych blokuje usuwanie, klucz bramki nie usuwa, klucz admina nie działa w adresie
 - `tests/api.test.ts` - kody odpowiedzi API (także `200` przy duplikacie, `413`, `429` z `Retry-After`), cache CDN tylko przy udanym GET, ślad w logach i to, że bez klucza nic nie trafia do bazy
 - `tests/scoreRepository.test.ts` - prawdziwe zapytania SQL na Postgresie w pamięci (PGlite) z tym samym `db/schema.sql`: kolejność rankingu, remisy, `CHECK`, format czasu, limity zapisów (wiersze ze znanym czasem po obu stronach każdej granicy) i to, że zapytania po czasie idą indeksem

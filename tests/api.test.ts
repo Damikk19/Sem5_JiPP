@@ -74,6 +74,19 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
     expect(repo.save).toHaveBeenCalledWith({ playerId: "ABC", score: 123 });
   });
 
+  it("zapisuje nick w jednej postaci: twarda spacja i litera rozłożona (NFD) jak zwykły napis", async () => {
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
+    await POST(post(JSON.stringify({ id: "Zoe\u0308\u00a0K", wynik: 1 }), { authorization: `Bearer ${BRAMKA}` }));
+    expect(repo.save).toHaveBeenCalledWith({ playerId: "Zo\u00eb K", score: 1 });
+  });
+
+  it("nick z niewidocznym znakiem: 400 bez powtarzania nicku w odpowiedzi, baza nietknięta", async () => {
+    const res = await POST(post(JSON.stringify({ id: "TAJNE\u200b", wynik: 1 }), { authorization: `Bearer ${BRAMKA}` }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).not.toContain("TAJNE");
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
   it("działa bez nagłówka Content-Type, bo bramka może go nie wysłać", async () => {
     vi.mocked(repo.save).mockResolvedValue(NOWY);
     const req = new NextRequest(ADRES, {

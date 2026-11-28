@@ -120,6 +120,63 @@ describe("walidacja wyniku od bramki", () => {
     expect(result).toEqual({ ok: false, error: '"id" musi zawierać co najmniej jeden widoczny znak' });
   });
 
+  // Warianty, które wyglądają jak inny nick (np. "ABC"), a dla bazy byłyby nowym nickiem: omijałyby limit
+  // nicku i duplikaty, a w rankingu dawały kilka "takich samych" graczy
+  it.each([
+    ["spacja zerowej szerokości na końcu", "ABC\u200b"],
+    ["spacja zerowej szerokości w środku", "A\u200bBC"],
+    ["łącznik wyrazów (WORD JOINER)", "ABC\u2060"],
+    ["BOM w środku", "AB\ufeffC"],
+    ["wypełniacz Hangul na końcu", "ABC\u3164"],
+    ["wypełniacze Hangul w środku", "A\u115fB\u1160C\uffa0"],
+    ["pusty znak Braille'a w środku", "AB\u2800C"],
+    ["miękki dywiz", "A\u00adBC"],
+    ["mongolski separator samogłosek", "ABC\u180e"],
+    ["rozłącznik zerowej szerokości (ZWNJ)", "AB\u200cC"],
+    ["niewidoczne operatory matematyczne", "A\u2061B\u2062C\u2063\u2064"],
+    ["łącznik grafemów (CGJ)", "ABC\u034f"],
+    ["ZWJ po literze", "ABC\u200d"],
+    ["ZWJ między literami", "A\u200dBC"],
+    ["ZWJ przed emoji, ale po literze", "A\u200d👾"],
+    ["ZWJ na końcu po emoji", "👾\u200d"],
+    ["selektor wariantu po literze (VS16)", "ABC\ufe0f"],
+    ["selektor wariantu po selektorze", "❤\ufe0f\ufe0f"],
+    ["znak tagu poza flagą", "ABC\u{E0041}"],
+    ["flaga z tagami bez znaku końca", "🏴\u{E0067}\u{E0062}\u{E0065}"],
+  ])("odrzuca nick z niewidocznym znakiem: %s", (_, id) => {
+    expect(parse({ id, wynik: 1 })).toEqual({
+      ok: false,
+      error: '"id" nie może zawierać niewidocznych znaków (np. spacji zerowej szerokości)',
+    });
+  });
+
+  // Ten sam napis zapisany inaczej daje ten sam nick, więc limit nicku i duplikaty działają na niego tak samo
+  it.each([
+    ["ë jako e + dwie kropki (NFD)", "Zoe\u0308", "Zo\u00eb"],
+    ["polskie litery zostają bez zmian", "ŁOŚ", "ŁOŚ"],
+    ["twarda spacja w środku", "A\u00a0BC", "A BC"],
+    ["spacja ideograficzna w środku", "A\u3000BC", "A BC"],
+    ["wąska twarda spacja i cienka spacja", "A\u202fB\u2009C", "A B C"],
+    ["twarda spacja na początku", "\u00a0ABC", "ABC"],
+    ["spacja zwykła na końcu", "ABC ", "ABC"],
+  ])("zapisuje nick w jednej postaci: %s", (_, id, zapisany) => {
+    const wynik = parse({ id, wynik: 1 });
+    expect(wynik).toEqual({ ok: true, dto: { playerId: zapisany, score: 1 } });
+  });
+
+  // Kontrakt z bramką: emoji złożone (ZWJ, odcienie skóry, flagi z tagami, keycapy) dalej przechodzą
+  it.each([
+    "Zażółć gęślą", "A B", "AB CD",
+    "👨\u200d👩\u200d👧\u200d👦", "❤\ufe0f\u200d🔥", "🧑\u200d🦰", "🏃🏻\u200d♀\ufe0f", "🐻\u200d❄\ufe0f",
+    "🏴\u200d☠\ufe0f", "👁\ufe0f\u200d🗨\ufe0f", "🫱🏻\u200d🫲🏼",
+    "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "🏴\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
+    "1\ufe0f\u20e3", "#\ufe0f\u20e3", "☺\ufe0e", "™\ufe0f", "ABC 👾", "GRACZ🏳\ufe0f\u200d🌈",
+    "葛\u{E0100}",
+  ])("dalej przyjmuje nick: %j", (id) => {
+    const wynik = parse({ id, wynik: 1 });
+    expect(wynik).toEqual({ ok: true, dto: { playerId: id.normalize("NFC"), score: 1 } });
+  });
+
   it.each([undefined, "", "   ", null, { a: 1 }])("odrzuca brakujące albo puste id: %s", (id) => {
     expect(parse({ id, wynik: 1 }).ok).toBe(false);
   });
