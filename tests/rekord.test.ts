@@ -203,6 +203,15 @@ describe("co widać na stronie po nowych danych", () => {
     expect(poZamknieciu.dzwiek).toBeNull();
   });
 
+  it("rekord z ekranu usunięty, a nowa gra z tym samym wynikiem na 1. miejscu: ekran zostaje", () => {
+    const D = gra("D", 500, 4);
+    const E = gra("E", 500, 5);
+    const poRekordzie = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
+    const { widok, dzwiek } = przyjmij(poRekordzie, ranking(A, B, C, E), ["E"]);
+    expect(widok.rekord).toEqual(D);
+    expect(dzwiek).toBeNull();
+  });
+
   it("gra równa rekordowi na ekranie nie podmienia go, tylko czeka", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 500, 5);
