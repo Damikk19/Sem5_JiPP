@@ -41,9 +41,9 @@ export default function Docs() {
 
       <h2 className="sekcja">Limity zapisów</h2>
       <p>
-        Body najwyżej 1024 bajty (<code>413</code>). Ten sam <code>id</code> z tym samym <code>wynik</code> w ciągu
-        30 s to ta sama gra: <code>200</code> z istniejącym wpisem, bez drugiego wpisu, więc ponowienie żądania jest
-        bezpieczne.
+        Body najwyżej 1024 bajty (<code>413</code>). Zapis z tym samym <code>wynik</code> co ostatni wpis tego
+        samego <code>id</code> z ostatnich 30 s to ta sama gra: <code>200</code> z istniejącym wpisem, bez drugiego
+        wpisu, więc ponowienie żądania jest bezpieczne.
       </p>
       <p>
         Inny wynik tego samego <code>id</code> przed upływem 5 s od poprzedniego zapisu oraz więcej niż 30 nowych

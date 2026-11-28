@@ -25,16 +25,21 @@ const BLOKADA = `SELECT pg_advisory_xact_lock(hashtext('scores:zapis'))`;
 
 // Po blokadzie jedno polecenie sprawdza limity i dopisuje wiersz, tylko gdy żaden nie zabrania.
 // Każdy warunek czasu ma postać "timestamp" > now() - okno, żeby baza szła istniejącym indeksem
-// (scores_latest_idx, a przy duplikacie także scores_ranking_idx, bo zaczyna się od wyniku) i czytała
-// tylko wiersze z okna. Zwraca zawsze dokładnie jeden wiersz: "nowy" (dopisany), "duplikat" (ta sama gra
-// przed chwilą) albo "limit" z czasem do ponowienia w sekundach (zaokrąglonym w górę, więc co najmniej 1).
+// scores_latest_idx i czytała tylko wiersze z okna. Zwraca zawsze dokładnie jeden wiersz: "nowy" (dopisany),
+// "duplikat" (ta sama gra przed chwilą) albo "limit" z czasem do ponowienia w sekundach (zaokrąglonym w górę,
+// więc co najmniej 1).
+// Duplikat to tylko ostatni wpis tego nicku z okna, i to z tym samym wynikiem. Gry 0, 10, 0 to trzy różne
+// gry, a nie powtórka pierwszej, bo między nimi była inna.
 const ZAPIS = `
 WITH
   duplikat AS (
-    SELECT ${COLUMNS} FROM scores
-    WHERE "timestamp" > now() - make_interval(secs => $3) AND player_id = $1 AND score = $2
-    ORDER BY "timestamp" DESC, id DESC
-    LIMIT 1
+    SELECT * FROM (
+      SELECT ${COLUMNS} FROM scores
+      WHERE "timestamp" > now() - make_interval(secs => $3) AND player_id = $1
+      ORDER BY "timestamp" DESC, id DESC
+      LIMIT 1
+    ) ostatni
+    WHERE score = $2
   ),
   nick AS (
     SELECT max("timestamp") AS ostatni FROM scores

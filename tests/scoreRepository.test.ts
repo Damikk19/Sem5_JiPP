@@ -172,6 +172,17 @@ describe("save: limity zapisów", () => {
     expect(await ileWierszy()).toBe(1);
   });
 
+  it("duplikat to tylko ostatni wpis nicku: gry 0, 10, 0 w ciągu 30 s to trzy wpisy", async () => {
+    await wstawTemu("ABA", 0, 14);
+    await wstawTemu("ABA", 10, 7);
+    const trzecia = await save({ playerId: "ABA", score: 0 });
+    expect(trzecia.rodzaj).toBe("nowy");
+    expect(await ileWierszy()).toBe(3);
+    // Ponowienie tej samej ramki zaraz potem to dalej duplikat trzeciej gry
+    expect(await save({ playerId: "ABA", score: 0 })).toEqual({ rodzaj: "duplikat", wynik: (trzecia as { wynik: Score }).wynik });
+    expect(await ileWierszy()).toBe(3);
+  });
+
   it("duplikat to ten sam nick i ten sam wynik: inny nick albo inny wynik to nie duplikat", async () => {
     await wstawTemu("ABC", 50, 10);
     expect((await save({ playerId: "XYZ", score: 50 })).rodzaj).toBe("nowy");
