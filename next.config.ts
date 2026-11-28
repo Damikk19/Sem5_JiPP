@@ -18,6 +18,8 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Bez nagłówka X-Powered-By: Next.js (nie zdradza, na czym działa serwer)
+  poweredByHeader: false,
   async headers() {
     return [
       {

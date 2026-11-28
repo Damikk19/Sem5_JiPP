@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parse } from "@/lib/scoreValidator";
 
 // Format od bramki prowadzącego to umowa: { "id": "<gracz>", "wynik": <liczba> }.
@@ -59,6 +59,21 @@ describe("walidacja wyniku od bramki", () => {
   it("liczy długość id w znakach, jak baza: 32 emoji tak, 33 nie", () => {
     expect(parse({ id: "👾".repeat(32), wynik: 1 }).ok).toBe(true);
     expect(parse({ id: "👾".repeat(33), wynik: 1 }).ok).toBe(false);
+  });
+
+  it("bardzo długie id odrzuca od razu, bez rozbijania tekstu na znaki", () => {
+    const rozbijanie = vi.spyOn(String.prototype, Symbol.iterator);
+    try {
+      // Krótkie id jest liczone po znakach (to pokazuje, że podsłuch działa)
+      expect(parse({ id: "ABC", wynik: 1 }).ok).toBe(true);
+      expect(rozbijanie).toHaveBeenCalled();
+      rozbijanie.mockClear();
+      const wynik = parse({ id: "x".repeat(100_000), wynik: 1 });
+      expect(wynik).toEqual({ ok: false, error: '"id" musi mieć od 1 do 32 znaków' });
+      expect(rozbijanie).not.toHaveBeenCalled();
+    } finally {
+      rozbijanie.mockRestore();
+    }
   });
 
   it.each([

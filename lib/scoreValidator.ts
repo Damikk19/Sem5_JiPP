@@ -24,6 +24,11 @@ export function parse(body: unknown): ParseResult {
     return { ok: false, error: 'Brak pola "id" (identyfikator gracza)' };
   }
   const playerId = String(id).trim();
+  // Znak to najwyżej 2 jednostki UTF-16, więc tekst dłuższy niż 2 × limit na pewno ma za dużo znaków.
+  // Odrzucamy go od razu, bez rozbijania na znaki (nie budujemy tablicy z każdego znaku długiego tekstu).
+  if (playerId.length > MAX_PLAYER_ID_LENGTH * 2) {
+    return { ok: false, error: `"id" musi mieć od 1 do ${MAX_PLAYER_ID_LENGTH} znaków` };
+  }
   // Długość w znakach, tak jak liczy varchar w Postgresie (emoji to jeden znak, choć w JS ma length 2)
   const znaki = [...playerId].length;
   if (znaki === 0 || znaki > MAX_PLAYER_ID_LENGTH) {
