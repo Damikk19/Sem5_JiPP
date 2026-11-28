@@ -91,7 +91,7 @@ export default function Leaderboard() {
       },
       ukryta: () => document.hidden,
       naDane: (dane, noweId) => {
-        const { widok: w, dzwiek } = przyjmij(widokRef.current, dane, noweId);
+        const { widok: w, dzwiek } = przyjmij(widokRef.current, dane, noweId, pierwsze);
         pokazWidok(w, dzwiek, !pierwsze);
         pierwsze = false;
         // Nowa gra przerywa pokaz i liczy minutę od nowa

@@ -469,7 +469,8 @@ body::after {
     animation: none;
   }
 
-  /* Bez migania nowy wynik jest podświetlony, dopóki strona nie pobierze kolejnych danych */
+  /* Bez migania nowy wynik jest podświetlony, dopóki strona nie pobierze kolejnych danych
+     (po zamknięciu ekranu rekordu jeszcze przez jedno pytanie bez nowych gier) */
   .miga-nowy {
     background: rgb(255 255 255 / 0.14);
   }

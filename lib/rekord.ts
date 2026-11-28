@@ -15,7 +15,7 @@ export function nowyRekord(top: Score[], nowe: string[], dotychczasowy: number):
 }
 
 // Dane do tabeli razem z grami, które w nich migają, i rekordem, który je przyniósł.
-// trzyma: wyróżnienie zostaje do pytania, które przyniesie nowe gry (dane po zamknięciu ekranu rekordu).
+// trzyma: wyróżnienie przetrwa jeszcze jedno pytanie bez nowych gier (dane po zamknięciu ekranu rekordu).
 export type Paczka = { dane: Ranking; nowe: string[]; rekord: Score | null; trzyma?: boolean };
 
 // Co widać na stronie. Kiedy przychodzi rekord, pod ekranem rekordu zostaje stara tabela, a nowe dane
@@ -37,8 +37,12 @@ export const POCZATEK: Widok = { tabela: null, rekord: null, czeka: null, zagran
 
 const suma = (a: string[], b: string[]) => [...new Set([...a, ...b])];
 
-// Nowe dane z odpytywania
-export function przyjmij(w: Widok, dane: Ranking, nowe: string[]): { widok: Widok; dzwiek: Dzwiek } {
+// Nowe dane z odpytywania. nowaPetla: pierwsze pobranie po wejściu na stronę albo powrocie z innej podstrony.
+export function przyjmij(w: Widok, dane: Ranking, nowe: string[], nowaPetla = false): { widok: Widok; dzwiek: Dzwiek } {
+  if (nowaPetla) {
+    // Jak pierwsze pobranie: nic nie świętuje i nic z wcześniejszych danych nie zostaje wyróżnione
+    return { widok: { tabela: { dane, nowe: [], rekord: null }, rekord: null, czeka: null, zagrane: [] }, dzwiek: null };
+  }
   if (w.rekord) {
     // Ekran rekordu jest otwarty: czekają najnowsze dane, a nowe gry z kolejnych pytań się sumują
     const wszystkie = suma(w.czeka?.nowe ?? [], nowe);
@@ -57,9 +61,10 @@ export function przyjmij(w: Widok, dane: Ranking, nowe: string[]): { widok: Wido
     return { widok: { tabela: w.tabela, rekord, czeka: { dane, nowe, rekord }, zagrane: nowe }, dzwiek: "rekord" };
   }
   // Po zamknięciu ekranu rekordu kolejne pytanie przychodzi zwykle zaraz (oba czasy liczą się od tej samej
-  // odpowiedzi): bez nowych gier wyróżnienie i komunikat zostają, żeby rekord mignął w całości
+  // odpowiedzi): bez nowych gier wyróżnienie i komunikat zostają na to jedno pytanie, żeby rekord mignął
+  // w całości. Następne pytanie gasi je jak po zwykłej grze.
   if (nowe.length === 0 && w.tabela?.trzyma) {
-    return { widok: { ...w, tabela: { ...w.tabela, dane } }, dzwiek: null };
+    return { widok: { ...w, tabela: { ...w.tabela, dane, trzyma: false } }, dzwiek: null };
   }
   return {
     widok: { tabela: { dane, nowe, rekord: null }, rekord: null, czeka: null, zagrane: [] },

@@ -254,27 +254,52 @@ describe("zamknięcie ekranu rekordu", () => {
     let w = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
     w = przyjmij(w, ranking(A, B, C, D, E), ["E"]).widok;
     w = zamknij(w).widok;
-    const { widok, dzwiek } = przyjmij(w, ranking(A, B, C, D, E), []);
+    // świeże dane wchodzą do tabeli (np. usunięty wpis), wyróżnienie zostaje
+    const { widok, dzwiek } = przyjmij(w, ranking(B, C, D, E), []);
+    expect(widok.tabela?.dane.top.map((g) => g.id)).toEqual(["D", "B", "E", "C"]);
     expect(widok.tabela?.nowe).toEqual(["D", "E"]);
     expect(widok.tabela?.rekord).toEqual(D);
+    expect(komunikat(widok)).toBe("Nowy rekord: D, 500 pkt");
     expect(dzwiek).toBeNull();
-    // świeże dane wchodzą do tabeli (np. usunięty wpis), wyróżnienie dalej to samo
-    const poUsunieciu = przyjmij(widok, ranking(B, C, D, E), []).widok;
-    expect(poUsunieciu.tabela?.dane.top.map((g) => g.id)).toEqual(["D", "B", "E", "C"]);
-    expect(poUsunieciu.tabela?.nowe).toEqual(["D", "E"]);
   });
 
-  it("wyróżnienie po rekordzie trwa do pytania z nowymi grami", () => {
+  it("wyróżnienie po rekordzie trwa najwyżej jedno pytanie bez nowych gier", () => {
     const D = gra("D", 500, 4);
-    const F = gra("F", 30, 6);
     let w = zamknij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok).widok;
     w = przyjmij(w, ranking(A, B, C, D), []).widok;
+    expect(w.tabela?.nowe).toEqual(["D"]);
+    const { widok, dzwiek } = przyjmij(w, ranking(A, B, C, D), []);
+    expect(widok.tabela?.nowe).toEqual([]);
+    expect(widok.tabela?.rekord).toBeNull();
+    expect(komunikat(widok)).toBe("");
+    expect(dzwiek).toBeNull();
+  });
+
+  it("nowa gra zaraz po zamknięciu: wyróżniona jest ona, nie rekord", () => {
+    const D = gra("D", 500, 4);
+    const F = gra("F", 30, 6);
+    const w = zamknij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok).widok;
     const { widok, dzwiek } = przyjmij(w, ranking(A, B, C, D, F), ["F"]);
     expect(widok.tabela?.nowe).toEqual(["F"]);
     expect(widok.tabela?.rekord).toBeNull();
     expect(dzwiek).toBe("nowa-gra");
-    // zwykła gra nie trzyma wyróżnienia: kolejne pytanie bez nowych gier je gasi
-    expect(przyjmij(widok, ranking(A, B, C, D, F), []).widok.tabela?.nowe).toEqual([]);
+  });
+
+  it("pierwsze pobranie nowej pętli (powrót z innej podstrony) nie wyróżnia starego rekordu ani nie świętuje", () => {
+    const D = gra("D", 500, 4);
+    const M = gra("M", 2000, 7);
+    const L = gra("L", 20, 8);
+    const w = zamknij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok).widok;
+    // w czasie, gdy strona była schowana, przyszły M (wyższy rekord) i L
+    const { widok, dzwiek } = przyjmij(w, ranking(A, B, C, D, M, L), [], true);
+    expect(widok.tabela?.dane.top[0]).toEqual(M);
+    expect(widok.tabela?.nowe).toEqual([]);
+    expect(widok.tabela?.rekord).toBeNull();
+    expect(widok.rekord).toBeNull();
+    expect(komunikat(widok)).toBe("");
+    expect(dzwiek).toBeNull();
+    // kolejne pytanie bez nowych gier niczego nie wskrzesza
+    expect(przyjmij(widok, ranking(A, B, C, D, M, L), []).widok.tabela?.nowe).toEqual([]);
   });
 
   it("zamknięcie bez otwartego ekranu niczego nie zmienia", () => {
