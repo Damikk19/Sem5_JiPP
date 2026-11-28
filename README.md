@@ -51,7 +51,10 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 - `lib/auth.ts` - klucze: `API_TOKEN` do zapisu, `ADMIN_TOKEN` do usuwania
 - `lib/scoreValidator.ts` - sprawdza body od bramki
 - `lib/scoreRepository.ts` - zapis i ranking w bazie
-- `app/leaderboard.tsx` - ranking na stronie, odświeżany co 5 s, nowe wyniki migają
+- `app/leaderboard.tsx` - ranking na stronie, odświeżany co 5 s, nowe wyniki migają, a wiersze przeskakują na nowe miejsca (`lib/flip.ts`)
+- `app/nowy-rekord.tsx`, `lib/rekord.ts` - ekran NEW HIGH SCORE i kolejność danych przy rekordzie
+- `app/demo.tsx`, `lib/atrakcja.ts`, `lib/demo.ts` - ekran pokazowy na dużym ekranie: po minucie bez gier demo gry, w którą gra bot
+- `lib/dzwiek.ts` - dźwięk 8-bit z Web Audio (domyślnie wyłączony, przycisk pod zachętą)
 - `lib/odswiezanie.ts` - które gry są nowe i jak często pytać API (po godzinie bez gier co 30 min, żeby baza mogła zasnąć)
 - `db/schema.sql` - tabela `scores` i indeksy
 - `next.config.ts` - nagłówki bezpieczeństwa (CSP, `nosniff`, `Referrer-Policy`)
@@ -66,6 +69,7 @@ Zapis wymaga klucza API (bez niego każdy mógłby dopisać dowolny wynik): nag�
 - `tests/api.test.ts` - kody odpowiedzi API i to, że bez klucza nic nie trafia do bazy
 - `tests/scoreRepository.test.ts` - prawdziwe zapytania SQL na Postgresie w pamięci (PGlite) z tym samym `db/schema.sql`: kolejność rankingu, remisy, `CHECK`, format czasu
 - `tests/odswiezanie.test.ts` - które gry migają (także po usunięciu wpisu) i tempo odpytywania
+- `tests/rekord.test.ts`, `tests/atrakcja.test.ts`, `tests/demo.test.ts`, `tests/dzwiek.test.ts`, `tests/flip.test.ts` - kiedy jest rekord, cykl pokazu, symulacja demo, nuty i obwiednia dźwięku, przesunięcia wierszy (także przy powiększeniu)
 - `tests/log.test.ts` - hasło do bazy nie trafia do logów
 - `tests/usunWynik.test.ts` - skrypt usuwania wysyła klucz admina tylko na adres wyniku
 

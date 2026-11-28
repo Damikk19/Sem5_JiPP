@@ -39,9 +39,13 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 | Nr | Wymaganie |
 | --- | --- |
 | WF-14 | Strona pokazuje 10 najlepszych wyników i ostatnią grę, odświeża się co 5 s bez przeładowania. Po godzinie bez nowej gry i bez ruchu na stronie pyta API co 30 min (czuwanie), a kliknięcie albo powrót do karty od razu ją budzi. |
-| WF-15 | Nowe wyniki (wszystkie od poprzedniego odświeżenia) są wyróżnione na stronie: migają, a przy wyłączonych animacjach są podświetlone. Usunięcie wpisu nie wyróżnia starszej gry. |
+| WF-15 | Nowe wyniki (wszystkie od poprzedniego odświeżenia) są wyróżnione na stronie: migają, a przy wyłączonych animacjach są podświetlone. Usunięcie wpisu nie wyróżnia starszej gry. Wiersze, które zmieniły miejsce, przeskakują ze starego miejsca na nowe skokowo (co ok. 8 px przez 0,5 s, jak na starym sprzęcie). Nowy wiersz nie wjeżdża, tylko miga, a wiersz, który wypadł z TOP 10, znika. Pierwsze pobranie i zmiana rozmiaru okna niczego nie przesuwają. |
 | WF-16 | Gdy strona traci połączenie z API, pokazuje komunikat „BRAK SYGNAŁU Z SERWERA”, a przy działającym połączeniu zachęca do gry. |
 | WF-17 | Wyświetlacz fizyczny pokazuje 5 najlepszych wyników i odświeża je co 10 s. **Planowane**, sprzęt do ustalenia. |
+| WF-18 | Nowa gra na 1. miejscu z wynikiem wyższym od dotychczasowego rekordu (więc większym od 0) otwiera na 5 s ekran NEW HIGH SCORE z nickiem i wynikiem. Klik albo Escape zamyka go wcześniej. Pod ekranem zostaje stara tabela, a nowe dane (także te, które przyjdą w trakcie) wchodzą po jego zamknięciu, więc widać przesunięcie wierszy. Remis, wynik 0, usunięcie wpisu i pierwsze pobranie nie otwierają ekranu. Czytnik ekranu dostaje komunikat „Nowy rekord: NICK, WYNIK pkt”. |
+| WF-19 | Na dużym ekranie (od 1250×760, jak tryb projektora) po 60 s bez nowej gry i bez kliknięcia albo klawisza w miejscu tabeli na zmianę leci pokaz (10 s) i wraca tabela (20 s). Pokaz to demo gry na matrycy 5×5, w którą gra bot według zasad gry, z zachętą do gry i punktacją DDR4/DDR5. Nowa gra, kliknięcie i klawisz od razu wracają do tabeli. Pokazu nie ma na telefonie i w małym oknie, przy braku połączenia z API ani w trakcie ekranu rekordu. Tabela zostaje pod pokazem dla czytnika ekranu. |
+| WF-20 | Strona ma dźwięk 8-bit (fala prostokątna, cicho, bez plików): dwa krótkie sygnały przy nowej grze i fanfara C-E-G-C przy rekordzie, przy kilku nowych grach naraz jeden dźwięk (rekord ma pierwszeństwo). Pokaz jest cichy. Dźwięk jest domyślnie wyłączony, włącza go przycisk „DŹWIĘK: WYŁ/WŁ”, a wybór zostaje w przeglądarce. Po przeładowaniu z włączonym dźwiękiem gra on od pierwszego kliknięcia na stronie (wymóg przeglądarki). |
+| WF-21 | Przy ustawieniu systemu „ogranicz ruch” (`prefers-reduced-motion`) strona nie miga, nie przesuwa wierszy, nie zmienia kolorów na ekranie rekordu i nie włącza pokazu. Dźwięk działa, jeśli jest włączony. Karta w tle niczego nie animuje i nic nie gra. |
 
 ## Wymagania niefunkcjonalne
 
@@ -49,7 +53,7 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 - **Uprawnienia**: dwa klucze z różnymi uprawnieniami. Klucz zapisu tylko dopisuje, klucz admina tylko usuwa.
 - **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`, a ostatnie gry z indeksu `(timestamp DESC, id DESC)`.
 - **Kompatybilność**: gra działa na micro:bicie V1 i V2 (uniwersalny plik `.hex`).
-- **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach z miesięcznymi limitami (m.in. 1 mln wywołań funkcji, 100 godzin pracy bazy). Dlatego strona pyta jednym żądaniem co 5 s, a w czuwaniu co 30 min, żeby baza mogła zasnąć.
+- **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach z miesięcznymi limitami (m.in. 1 mln wywołań funkcji, 100 godzin pracy bazy). Dlatego strona pyta jednym żądaniem co 5 s, a w czuwaniu co 30 min, żeby baza mogła zasnąć. Ekran rekordu, pokaz, dźwięk i przesuwanie wierszy działają w przeglądarce na danych z tego samego żądania, więc nie dokładają zapytań.
 - **Wdrażanie**: każdy push na `main` automatycznie buduje i wdraża nową wersję. Nieudany build nie zastępuje działającej wersji.
 
 ## Komunikacja
