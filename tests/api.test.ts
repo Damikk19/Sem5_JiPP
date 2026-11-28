@@ -185,6 +185,13 @@ describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
     expect(repo.save).toHaveBeenCalledTimes(1);
   });
 
+  it("Content-Length mniejszy niż prawdziwe body: liczą się bajty strumienia (413)", async () => {
+    // Nagłówek mówi 10 B, a strumień ma 5000 B: zatrzymać to może tylko licznik bajtów, nie sam nagłówek
+    const res = await POST(postKawalki([bodyBajtow(5000)], { "x-api-key": BRAMKA, "content-length": "10" }));
+    expect(res.status).toBe(413);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
   it("liczy bajty, nie znaki: 600 liter ł to 1200 B", async () => {
     const body = new TextEncoder().encode(`{"id":"ABC","wynik":1,"x":"${"ł".repeat(600)}"}`);
     expect((await POST(postKawalki([body]))).status).toBe(413);
@@ -355,6 +362,20 @@ describe("cache CDN tylko dla udanych publicznych GET", () => {
       OPTIONS_RANKINGU(),
     ];
     expect(odpowiedzi.map((r) => r.status)).toEqual([201, 401, 200, 429, 400, 200, 400, 204, 204]);
+    for (const res of odpowiedzi) expect(res.headers.get(CDN)).toBeNull();
+  });
+
+  it("413, błąd bazy przy zapisie i odmowy usuwania też nie mają cache", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(repo.save).mockRejectedValueOnce(new Error("timeout"));
+    vi.mocked(repo.remove).mockResolvedValueOnce(null);
+    const odpowiedzi = [
+      await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}`, "content-length": "5000" })),
+      await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` })),
+      await usun(ID, { authorization: `Bearer ${BRAMKA}` }),
+      await usun(ID, { authorization: `Bearer ${ADMIN}` }),
+    ];
+    expect(odpowiedzi.map((r) => r.status)).toEqual([413, 500, 401, 404]);
     for (const res of odpowiedzi) expect(res.headers.get(CDN)).toBeNull();
   });
 });

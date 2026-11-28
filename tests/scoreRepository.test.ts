@@ -10,7 +10,7 @@ type Zapytanie = { text: string; params?: unknown[] };
 const baza = vi.hoisted(() => ({
   pg: null as unknown as PGlite,
   // Ostatnia transakcja: zapytania, opcje i ile blokad doradczych było założonych przed każdym zapytaniem
-  transakcja: null as null | { zapytania: Zapytanie[]; opcje: unknown; blokadyPrzed: number[] },
+  transakcja: null as null | { zapytania: Zapytanie[]; opcje: unknown; blokadyPrzed: number[]; kluczeBlokad: (string | null)[] },
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -20,16 +20,21 @@ vi.mock("@/lib/db", () => ({
     transaction: async (zbuduj: (tx: { query: (text: string, params?: unknown[]) => Zapytanie }) => Zapytanie[], opcje?: unknown) => {
       const zapytania = zbuduj({ query: (text, params) => ({ text, params }) });
       const blokadyPrzed: number[] = [];
+      const kluczeBlokad: (string | null)[] = [];
       const wyniki = await baza.pg.transaction(async (tx) => {
         const rows: unknown[][] = [];
         for (const z of zapytania) {
           const blokady = await tx.query<{ ile: number }>(`SELECT count(*)::int AS ile FROM pg_locks WHERE locktype = 'advisory'`);
           blokadyPrzed.push(blokady.rows[0].ile);
+          const klucze = await tx.query<{ k: string | null }>(
+            `SELECT string_agg(classid || ':' || objid, ',' ORDER BY classid, objid) AS k FROM pg_locks WHERE locktype = 'advisory'`,
+          );
+          kluczeBlokad.push(klucze.rows[0].k);
           rows.push((await tx.query(z.text, z.params)).rows);
         }
         return rows;
       });
-      baza.transakcja = { zapytania, opcje, blokadyPrzed };
+      baza.transakcja = { zapytania, opcje, blokadyPrzed, kluczeBlokad };
       return wyniki;
     },
   }),
@@ -185,7 +190,7 @@ describe("save: limity zapisów", () => {
   });
 
   it("czas do ponowienia jest zaokrąglany w górę: tuż przed końcem okna to 1 s, nie 0", async () => {
-    await wstawTemu("ABC", 50, 4.9);
+    await wstawTemu("ABC", 50, 4.5);
     expect(await save({ playerId: "ABC", score: 60 })).toEqual({ rodzaj: "limit", powod: "nick", ponowZaS: 1 });
   });
 
@@ -243,7 +248,8 @@ describe("save: limity zapisów", () => {
     expect(await ileWierszy()).toBe(30);
   });
 
-  it("równoległe zapisy: jedna gra wysłana kilka razy daje jeden wiersz, a zalew najwyżej 30", async () => {
+  // PGlite wykonuje transakcje po kolei, więc to test logiki dla wielu zapisów naraz, nie prawdziwego wyścigu
+  it("kilka zapisów naraz: jedna gra wysłana kilka razy daje jeden wiersz, a zalew najwyżej 30", async () => {
     const ta_sama = await Promise.all([1, 2, 3].map(() => save({ playerId: "ABC", score: 9 })));
     expect(ta_sama.map((z) => z.rodzaj).sort()).toEqual(["duplikat", "duplikat", "nowy"]);
     const zalew = await Promise.all(Array.from({ length: 35 }, (_, i) => save({ playerId: `Z${i}`, score: i })));
@@ -265,6 +271,17 @@ describe("save: limity zapisów", () => {
     expect((await baza.pg.query<{ ile: number }>(`SELECT count(*)::int AS ile FROM pg_locks WHERE locktype = 'advisory'`)).rows[0].ile).toBe(0);
   });
 
+  // Limit łączny (30/60 s) działa przy równoległych zapisach tylko wtedy, gdy wszystkie nicki czekają na tę samą
+  // blokadę. Blokada per nick przepuściłaby dwa różne nicki naraz przy 29 wpisach w oknie.
+  it("wszystkie nicki biorą tę samą blokadę", async () => {
+    await save({ playerId: "ABC", score: 1 });
+    const pierwsza = baza.transakcja!.kluczeBlokad.at(-1);
+    await save({ playerId: "XYZ", score: 2 });
+    const druga = baza.transakcja!.kluczeBlokad.at(-1);
+    expect(pierwsza).toBeTruthy();
+    expect(druga).toBe(pierwsza);
+  });
+
   it("zapytania po czasie idą indeksem, bez czytania całej tabeli", async () => {
     await save({ playerId: "ABC", score: 1 });
     const zapis = baza.transakcja!.zapytania.at(-1)!;
@@ -275,6 +292,9 @@ describe("save: limity zapisów", () => {
         .join("\n");
       expect(plan).not.toContain("Seq Scan");
       expect(plan).toContain("scores_latest_idx");
+      // Każde z trzech okien (duplikat, nick, limit łączny) zawęża skan indeksu warunkiem na czas.
+      // Sam brak "Seq Scan" przepuściłby pełny skan indeksu z filtrem (np. now() - "timestamp" < okno).
+      expect(plan.match(/Index Cond: .*"timestamp" > \(now\(\)/g)).toHaveLength(3);
     } finally {
       await baza.pg.exec("RESET enable_seqscan");
     }
