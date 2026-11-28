@@ -138,6 +138,10 @@ body::after {
   white-space: nowrap;
 }
 
+.tabela {
+  position: relative;
+}
+
 .naglowek {
   margin: 36px 0 20px;
   font-size: 16px;
@@ -287,6 +291,71 @@ body::after {
   .rekord-tytul { font-size: 24px; }
 }
 
+/* ---------- Ekran pokazowy w miejscu tabeli (tylko duży ekran) ---------- */
+
+.demo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--background);
+}
+
+.demo p {
+  margin: 0;
+}
+
+.demo-napis {
+  font-size: 16px;
+  color: var(--led);
+}
+
+/* Duża matryca 5x5 jak na micro:bicie. Jasność diody jak w grze: DDR4 przygaszona, DDR5 jasna. */
+.demo-matryca {
+  display: grid;
+  grid-template-columns: repeat(5, 40px);
+  gap: 16px;
+}
+
+.demo-dioda {
+  display: block;
+  width: 40px;
+  height: 40px;
+  background: #1c1c1c;
+}
+
+.demo-dioda.j1 { background: color-mix(in srgb, var(--led) 30%, #1c1c1c); }
+.demo-dioda.j2 { background: color-mix(in srgb, var(--led) 55%, #1c1c1c); }
+.demo-dioda.j3 { background: color-mix(in srgb, var(--led) 85%, #1c1c1c); box-shadow: 0 0 8px var(--led); }
+.demo-dioda.j4 { background: var(--led); box-shadow: 0 0 12px var(--led); }
+
+.demo-zacheta {
+  font-size: 16px;
+  color: var(--yellow);
+  animation: zacheta 1.2s steps(1) infinite;
+}
+
+.demo-punkty {
+  display: grid;
+  gap: 16px;
+  font-size: 8px;
+  color: var(--foreground);
+}
+
+.demo-punkty p {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.demo-punkty .demo-dioda {
+  width: 16px;
+  height: 16px;
+}
+
 @keyframes zacheta {
   70% { opacity: 0; }
 }
@@ -337,6 +406,7 @@ body::after {
 
 /* ---------- Duży ekran (projektor, monitor): układ w dwóch kolumnach i powiększenie ---------- */
 /* Lewa kolumna: tytuł, HI-SCORE, sterowanie. Prawa: tabela. Powiększenie w krokach, żeby pixelowy font był ostry. */
+/* Ten sam warunek co DUZY_EKRAN w lib/atrakcja.ts (ekran pokazowy): przy zmianie trzeba zmienić oba. */
 
 @media (min-width: 1250px) and (min-height: 760px) {
   .ekran {
@@ -393,7 +463,8 @@ body::after {
   .dioda.klatka-b,
   .miga-nowy,
   .zacheta,
-  .rekord-tytul {
+  .rekord-tytul,
+  .demo-zacheta {
     animation: none;
   }
 

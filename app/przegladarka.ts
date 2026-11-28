@@ -1,8 +1,83 @@
-// Stan przeglądarki dla rankingu: dźwięk.
+// Stan przeglądarki dla rankingu: media query, widoczność karty, cykl pokazu i dźwięk.
 // window, document, matchMedia i localStorage są czytane tylko w efektach i zdarzeniach, nigdy w renderze:
 // strona renderuje się na serwerze i przy hydracji musi wyglądać tak samo jak tam.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { faza } from "@/lib/atrakcja";
 import { doZapisu, harmonogram, KLUCZ, zagraj, zapamietany, type Rodzaj } from "@/lib/dzwiek";
+
+export function useMedia(zapytanie: string) {
+  const [pasuje, setPasuje] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(zapytanie);
+    const zmiana = () => setPasuje(mq.matches);
+    zmiana();
+    mq.addEventListener("change", zmiana);
+    return () => mq.removeEventListener("change", zmiana);
+  }, [zapytanie]);
+  return pasuje;
+}
+
+export function useWidoczna() {
+  const [widoczna, setWidoczna] = useState(true);
+  useEffect(() => {
+    const zmiana = () => setWidoczna(!document.hidden);
+    zmiana();
+    document.addEventListener("visibilitychange", zmiana);
+    return () => document.removeEventListener("visibilitychange", zmiana);
+  }, []);
+  return widoczna;
+}
+
+// Cykl ekranu pokazowego (lib/atrakcja.ts). Kliknięcie, klawisz, powrót do karty i nowa gra (ruch)
+// od razu wracają do tabeli i liczą minutę od nowa. seria rośnie przy każdym pokazie.
+export function usePokaz(mozna: boolean) {
+  const [pokaz, setPokaz] = useState(false);
+  const [seria, setSeria] = useState(0);
+  // Ostatnia aktywność w ms od otwarcia strony (performance.now): na starcie wejście na stronę
+  const aktywnosc = useRef(0);
+  const widac = useRef(false);
+
+  const ruch = useCallback(() => {
+    aktywnosc.current = performance.now();
+    widac.current = false;
+    setPokaz(false);
+  }, []);
+
+  useEffect(() => {
+    const powrot = () => {
+      if (!document.hidden) ruch();
+    };
+    window.addEventListener("pointerdown", ruch);
+    window.addEventListener("keydown", ruch);
+    document.addEventListener("visibilitychange", powrot);
+    return () => {
+      window.removeEventListener("pointerdown", ruch);
+      window.removeEventListener("keydown", ruch);
+      document.removeEventListener("visibilitychange", powrot);
+    };
+  }, [ruch]);
+
+  // Przed narysowaniem: gdy warunki wracają (np. koniec ekranu rekordu), nie miga stary stan pokazu.
+  // Timer po aktywności może się obudzić za wcześnie, ale wtedy tylko przelicza fazę od nowa.
+  useLayoutEffect(() => {
+    if (!mozna) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const plan = () => {
+      const f = faza(performance.now() - aktywnosc.current);
+      if (f.pokaz && !widac.current) setSeria((n) => n + 1);
+      widac.current = f.pokaz;
+      setPokaz(f.pokaz);
+      timer = setTimeout(plan, Math.ceil(f.doZmiany));
+    };
+    plan();
+    return () => {
+      clearTimeout(timer);
+      widac.current = false;
+    };
+  }, [mozna]);
+
+  return { pokaz: pokaz && mozna, seria, ruch };
+}
 
 // Dźwięk 8-bit, domyślnie wyłączony, wybór zapamiętany w localStorage. Przeglądarka pozwala grać dopiero
 // po kliknięciu albo klawiszu, więc kontekst Web Audio powstaje w obsłudze takiego zdarzenia: przy włączeniu

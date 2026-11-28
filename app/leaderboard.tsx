@@ -3,14 +3,16 @@
 // Ranking na żywo: co 5 sekund pyta API o TOP 10 i ostatnie gry (jedno żądanie).
 // Wygląd jak tablica HIGH SCORES na automacie. Tabela ma zawsze 10 wierszy,
 // więc nic nie skacze, kiedy pojawia się pierwszy wynik. Nowe wyniki migają, a wiersze, które zmieniły
-// miejsce, przeskakują na nowe. Rekord ma własny ekran.
+// miejsce, przeskakują na nowe. Rekord ma własny ekran, a po minucie bez gier na dużym ekranie leci pokaz.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { DUZY_EKRAN, moznaPokazac, OGRANICZONY_RUCH } from "@/lib/atrakcja";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
 import { POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
+import Demo from "./demo";
 import NowyRekord from "./nowy-rekord";
-import { useDzwiek } from "./przegladarka";
+import { useDzwiek, useMedia, usePokaz, useWidoczna } from "./przegladarka";
 
 const TOP = 10;
 const CYFRY = String(MAX_SCORE).length;
@@ -53,7 +55,14 @@ export default function Leaderboard() {
   // Pozycje wierszy tuż przed zmianą danych w tabeli (FLIP), null = bez przesuwania
   const przed = useRef<Map<string, number> | null>(null);
 
+  const duzyEkran = useMedia(DUZY_EKRAN);
+  const ograniczonyRuch = useMedia(OGRANICZONY_RUCH);
+  const widoczna = useWidoczna();
   const { wlaczony, przelacz, graj } = useDzwiek();
+  const pokaz = usePokaz(
+    moznaPokazac({ duzyEkran, ograniczonyRuch, widoczna, polaczenie: status === "live", rekord: widok.rekord !== null }),
+  );
+  const aktywnosc = pokaz.ruch;
 
   const pokazWidok = useCallback(
     (w: Widok, dzwiek: Dzwiek, przesun: boolean) => {
@@ -85,6 +94,8 @@ export default function Leaderboard() {
         const { widok: w, dzwiek } = przyjmij(widokRef.current, dane, noweId);
         pokazWidok(w, dzwiek, !pierwsze);
         pierwsze = false;
+        // Nowa gra przerywa pokaz i liczy minutę od nowa
+        if (noweId.length > 0) aktywnosc();
         setStatus("live");
       },
       naBlad: () => setStatus("offline"),
@@ -100,7 +111,7 @@ export default function Leaderboard() {
       window.removeEventListener("pointerdown", petla.ruch);
       window.removeEventListener("keydown", petla.ruch);
     };
-  }, [pokazWidok]);
+  }, [pokazWidok, aktywnosc]);
 
   // FLIP: wiersze startują z miejsca sprzed zmiany i przeskakują na nowe (przed narysowaniem klatki).
   // Bez ruchu przy ograniczonym ruchu i w karcie w tle.
@@ -108,7 +119,7 @@ export default function Leaderboard() {
     const stare = przed.current;
     przed.current = null;
     const wiersze = tbody.current;
-    if (!stare || !wiersze || document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!stare || !wiersze || document.hidden || window.matchMedia(OGRANICZONY_RUCH).matches) return;
     const po = pozycje(wiersze);
     const dy = przesuniecia(stare, po.mapa, po.skala);
     const animacje: Animation[] = [];
@@ -210,6 +221,8 @@ export default function Leaderboard() {
         <p className="sr-only" aria-live="polite">
           {komunikat}
         </p>
+
+        {pokaz.pokaz && <Demo key={pokaz.seria} seria={pokaz.seria} />}
       </div>
 
       {widok.rekord && (
