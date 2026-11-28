@@ -2,7 +2,8 @@
 // Usuwanie pojedynczego wyniku jest w [id]/route.ts.
 import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
-import { authError, json, jsonPubliczny, preflight } from "@/lib/http";
+import { authError, czytajBody, json, jsonPubliczny, preflight } from "@/lib/http";
+import { MAX_BODY_BAJTOW } from "@/lib/limity";
 import { logError } from "@/lib/log";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
@@ -14,10 +15,13 @@ export async function POST(request: NextRequest) {
   const auth = checkApiKey(request);
   if (auth !== "ok") return authError(auth, "API");
 
-  // Czytamy tekst zamiast request.json(), bo bramka może nie ustawić Content-Type.
+  // Czytamy tekst zamiast request.json(), bo bramka może nie ustawić Content-Type. Klucz jest sprawdzony
+  // wcześniej, więc bez niego body nie jest czytane wcale.
   let body: unknown;
   try {
-    body = JSON.parse(await request.text());
+    const tekst = await czytajBody(request, MAX_BODY_BAJTOW);
+    if (tekst === null) return json({ error: `Body za duże (maks. ${MAX_BODY_BAJTOW} B)` }, 413);
+    body = JSON.parse(tekst);
   } catch {
     return json({ error: "Niepoprawny JSON" }, 400);
   }

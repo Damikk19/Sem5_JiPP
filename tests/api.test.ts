@@ -101,6 +101,104 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
   });
 });
 
+// Body jako strumień bez Content-Length, tak jak przy Transfer-Encoding: chunked
+function postStrumien(body: ReadableStream<Uint8Array>, headers: Record<string, string>) {
+  const init = { method: "POST", body, headers, duplex: "half" };
+  return new NextRequest(ADRES, init as ConstructorParameters<typeof NextRequest>[1]);
+}
+
+function postKawalki(kawalki: Uint8Array[], headers: Record<string, string> = { "x-api-key": "klucz-bramki" }) {
+  const body = new ReadableStream<Uint8Array>({
+    start(c) {
+      for (const k of kawalki) c.enqueue(k);
+      c.close();
+    },
+  });
+  return postStrumien(body, headers);
+}
+
+// Poprawne body dopełnione spacjami (JSON je pomija) do podanej liczby bajtów
+function bodyBajtow(bajty: number) {
+  const json = '{"id":"ABC","wynik":1}';
+  return new TextEncoder().encode(json + " ".repeat(bajty - json.length));
+}
+
+describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
+  const KLUCZ = { authorization: "Bearer klucz-bramki" };
+
+  it("Content-Length powyżej limitu: 413 bez czytania body", async () => {
+    // Body jest małe, a nagłówek większy: odrzucić może tylko sprawdzenie nagłówka
+    const req = post('{"id":"ABC","wynik":1}', { ...KLUCZ, "content-length": "1025" });
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    expect((await res.json()).error).toContain("1024");
+    expect(req.body?.locked).toBe(false);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it("Content-Length równy limitowi przepuszcza", async () => {
+    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    const req = new NextRequest(ADRES, { method: "POST", body: bodyBajtow(1024), headers: { ...KLUCZ, "content-length": "1024" } });
+    expect((await POST(req)).status).toBe(201);
+  });
+
+  it.each(["99999999999999999999", " 5000 "])("bardzo duży albo ze spacjami Content-Length (%j): 413", async (dlugosc) => {
+    const res = await POST(post('{"id":"ABC","wynik":1}', { ...KLUCZ, "content-length": dlugosc }));
+    expect(res.status).toBe(413);
+  });
+
+  it("strumień bez Content-Length: 1024 B przechodzi, 1025 B daje 413", async () => {
+    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    const dokladnie = bodyBajtow(1024);
+    expect((await POST(postKawalki([dokladnie.slice(0, 600), dokladnie.slice(600)]))).status).toBe(201);
+    const zaDuzo = bodyBajtow(1025);
+    expect((await POST(postKawalki([zaDuzo.slice(0, 600), zaDuzo.slice(600)]))).status).toBe(413);
+    expect(repo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it("liczy bajty, nie znaki: 600 liter ł to 1200 B", async () => {
+    const body = new TextEncoder().encode(`{"id":"ABC","wynik":1,"x":"${"ł".repeat(600)}"}`);
+    expect((await POST(postKawalki([body]))).status).toBe(413);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it("nieskończony strumień: 413 i przerwanie czytania zaraz po limicie", async () => {
+    let przeczytane = 0;
+    const cancel = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      pull(c) {
+        przeczytane += 512;
+        c.enqueue(new TextEncoder().encode(" ".repeat(512)));
+      },
+      cancel,
+    });
+    expect((await POST(postStrumien(body, KLUCZ))).status).toBe(413);
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalled());
+    expect(przeczytane).toBeLessThanOrEqual(2048);
+  });
+
+  it("znak rozcięty między kawałkami strumienia nie psuje nicku", async () => {
+    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    const body = new TextEncoder().encode('{"id":"ŁĄC","wynik":1}');
+    // Bajt 8 to środek litery Ł (2 bajty w UTF-8)
+    expect((await POST(postKawalki([body.slice(0, 8), body.slice(8)]))).status).toBe(201);
+    expect(repo.save).toHaveBeenCalledWith({ playerId: "ŁĄC", score: 1 });
+  });
+
+  it("bez klucza: 401, a duże body nie jest nawet czytane", async () => {
+    const req = postKawalki([new Uint8Array(5000)], {});
+    const res = await POST(req);
+    expect(res.status).toBe(401);
+    expect(req.body?.locked).toBe(false);
+  });
+
+  it("puste body: 400 jak zepsuty JSON", async () => {
+    const res = await POST(new NextRequest(ADRES, { method: "POST", headers: KLUCZ }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "Niepoprawny JSON" });
+  });
+});
+
 describe("GET /api/scores (ranking)", () => {
   it("jest publiczny i domyślnie zwraca TOP 10", async () => {
     vi.unstubAllEnvs();

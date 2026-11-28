@@ -20,6 +20,32 @@ export function jsonPubliczny(data: unknown) {
   return Response.json(data, { status: 200, headers: { ...CORS, "Vercel-CDN-Cache-Control": CACHE_CDN } });
 }
 
+// Czyta body jako tekst (UTF-8, jak request.text()), ale nie więcej niż `limit` bajtów. Zwraca null, gdy body
+// jest większe. Najpierw sprawdza Content-Length, zanim przeczyta cokolwiek, a potem liczy bajty strumienia,
+// bo Content-Length może nie przyjść (np. przy Transfer-Encoding: chunked) albo być nieczytelny.
+// Czytanie kończy się zaraz po przekroczeniu limitu, więc reszta body nie trafia do pamięci.
+export async function czytajBody(request: Request, limit: number): Promise<string | null> {
+  const dlugosc = request.headers.get("content-length")?.trim();
+  if (dlugosc && /^\d+$/.test(dlugosc) && Number(dlugosc) > limit) return null;
+  if (!request.body) return "";
+
+  const czytnik = request.body.getReader();
+  const dekoder = new TextDecoder();
+  let bajty = 0;
+  let tekst = "";
+  for (;;) {
+    const { done, value } = await czytnik.read();
+    if (done) break;
+    bajty += value.byteLength;
+    if (bajty > limit) {
+      czytnik.cancel().catch(() => {});
+      return null;
+    }
+    tekst += dekoder.decode(value, { stream: true });
+  }
+  return tekst + dekoder.decode();
+}
+
 // Odpowiedź, gdy klucz się nie zgadza albo serwer nie ma go skonfigurowanego
 export function authError(result: Exclude<AuthResult, "ok">, which: string) {
   if (result === "not-configured") {
