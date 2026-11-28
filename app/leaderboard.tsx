@@ -230,9 +230,8 @@ export default function Leaderboard() {
         )}
 
       {widok.rekord && (
-        // Klucz: wyższy rekord w trakcie to nowy ekran z własnymi 5 s
         <NowyRekord
-          key={widok.rekord.id}
+          id={widok.rekord.id}
           nick={widok.rekord.playerId}
           wynik={punkty(widok.rekord.score)}
           zamknij={zamknijRekord}

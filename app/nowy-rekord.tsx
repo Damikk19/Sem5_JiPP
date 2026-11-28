@@ -11,11 +11,13 @@ import { REKORD_MS } from "@/lib/rekord";
 import { useZamontowany } from "./przegladarka";
 import RamSprite from "./ram-sprite";
 
-type Props = { nick: string; wynik: string; zamknij: () => void };
+type Props = { id: string; nick: string; wynik: string; zamknij: () => void };
 
-export default function NowyRekord({ nick, wynik, zamknij }: Props) {
+export default function NowyRekord({ id, nick, wynik, zamknij }: Props) {
   const zamontowany = useZamontowany();
 
+  // 5 s od pokazania rekordu: wyższy rekord w trakcie (inne id) liczy od nowa, a ekran zostaje ten sam,
+  // więc strona pod spodem nie odzyskuje na chwilę fokusu
   useEffect(() => {
     const timer = setTimeout(zamknij, REKORD_MS);
     const klawisz = (e: KeyboardEvent) => {
@@ -26,7 +28,7 @@ export default function NowyRekord({ nick, wynik, zamknij }: Props) {
       clearTimeout(timer);
       window.removeEventListener("keydown", klawisz);
     };
-  }, [zamknij]);
+  }, [id, zamknij]);
 
   useEffect(() => {
     const aktywny = document.activeElement;
