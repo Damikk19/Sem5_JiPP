@@ -1,4 +1,4 @@
-import type { AuthResult } from "./auth";
+import { problemZKluczem, type AuthResult, type Klucz } from "./auth";
 
 // Bramka i Arduino nie wysyłają nagłówków CORS, ale przeglądarka już tak,
 // więc pozwalamy na wywołania z dowolnej strony (np. testy z przeglądarki).
@@ -55,11 +55,12 @@ export function zaCzesto(komunikat: string, ponowZaS: number) {
   );
 }
 
-// Odpowiedź, gdy klucz się nie zgadza albo serwer nie ma go skonfigurowanego
-export function authError(result: Exclude<AuthResult, "ok">, which: string) {
+// Odpowiedź, gdy klucz się nie zgadza albo serwer nie ma go skonfigurowanego. Przy złej konfiguracji
+// klient dostaje ogólny komunikat, a to, który klucz i dlaczego, widzi tylko właściciel w logu.
+export function authError(result: Exclude<AuthResult, "ok">, which: Klucz) {
   if (result === "not-configured") {
-    console.error(`Brak klucza ${which} w zmiennych środowiskowych`);
-    return json({ error: `Serwer nie ma skonfigurowanego klucza ${which}` }, 500);
+    console.error(`Klucz ${which} wyłączony: ${problemZKluczem(which)}`);
+    return json({ error: "Błąd konfiguracji serwera" }, 500);
   }
   return Response.json(
     { error: result === "missing" ? `Brak klucza ${which}` : `Zły klucz ${which}` },

@@ -20,6 +20,9 @@ const ADRES = "https://sem5-jipp.vercel.app/api/scores";
 const ID = "3f2b8c1e-7a4d-4c2b-9e1f-0a6b5c4d3e2f";
 const WYNIK: Score = { id: ID, playerId: "ABC", score: 123, timestamp: "2026-11-23T12:00:00.000Z" };
 const NOWY = { rodzaj: "nowy", wynik: WYNIK } as const;
+// Klucze testowe mają co najmniej 32 znaki, jak prawdziwe (krótszy klucz serwer traktuje jak brak klucza)
+const BRAMKA = "klucz-bramki-0123456789abcdef0123456789";
+const ADMIN = "klucz-admina-0123456789abcdef0123456789";
 
 function post(body: string, headers: Record<string, string> = {}) {
   return new NextRequest(ADRES, { method: "POST", body, headers });
@@ -34,8 +37,8 @@ function usun(id: string, headers: Record<string, string> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
-  vi.stubEnv("API_TOKEN", "klucz-bramki");
-  vi.stubEnv("ADMIN_TOKEN", "klucz-admina");
+  vi.stubEnv("API_TOKEN", BRAMKA);
+  vi.stubEnv("ADMIN_TOKEN", ADMIN);
 });
 
 describe("POST /api/scores (zapis wyniku od bramki)", () => {
@@ -57,13 +60,13 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
 
   it("przyjmuje klucz w adresie (?key=)", async () => {
     vi.mocked(repo.save).mockResolvedValue(NOWY);
-    const req = new NextRequest(`${ADRES}?key=klucz-bramki`, { method: "POST", body: '{"id":"ABC","wynik":1}' });
+    const req = new NextRequest(`${ADRES}?key=${BRAMKA}`, { method: "POST", body: '{"id":"ABC","wynik":1}' });
     expect((await POST(req)).status).toBe(201);
   });
 
   it("z kluczem zapisuje wynik i odpowiada 201", async () => {
     vi.mocked(repo.save).mockResolvedValue(NOWY);
-    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual(WYNIK);
     expect(repo.save).toHaveBeenCalledWith({ playerId: "ABC", score: 123 });
@@ -74,20 +77,20 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
     const req = new NextRequest(ADRES, {
       method: "POST",
       body: new TextEncoder().encode('{"id":"ABC","wynik":"123"}'),
-      headers: { "x-api-key": "klucz-bramki" },
+      headers: { "x-api-key": BRAMKA },
     });
     expect((await POST(req)).status).toBe(201);
   });
 
   it("zepsuty JSON: 400, baza nietknięta", async () => {
-    const res = await POST(post("{zepsuty", { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post("{zepsuty", { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "Niepoprawny JSON" });
     expect(repo.save).not.toHaveBeenCalled();
   });
 
   it("złe dane: 400 z opisem, baza nietknięta", async () => {
-    const res = await POST(post('{"id":"ABC","wynik":1000000}', { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post('{"id":"ABC","wynik":1000000}', { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toContain("wynik");
     expect(repo.save).not.toHaveBeenCalled();
@@ -95,7 +98,7 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
 
   it("ta sama gra jeszcze raz (duplikat): 200 z istniejącym wpisem", async () => {
     vi.mocked(repo.save).mockResolvedValue({ rodzaj: "duplikat", wynik: WYNIK });
-    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(WYNIK);
   });
@@ -105,7 +108,7 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
     ["wszystkie", 42, "30 na 60 s"],
   ] as const)("limit zapisów (%s): 429 z Retry-After", async (powod, ponowZaS, opis) => {
     vi.mocked(repo.save).mockResolvedValue({ rodzaj: "limit", powod, ponowZaS });
-    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(429);
     expect(res.headers.get("retry-after")).toBe(String(ponowZaS));
     // Skrypt w przeglądarce (test z innej strony) może przeczytać Retry-After tylko z tym nagłówkiem
@@ -119,7 +122,7 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
   it("błąd bazy: 500 bez szczegółów technicznych w odpowiedzi", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(repo.save).mockRejectedValue(new Error("connection refused 10.0.0.1"));
-    const res = await POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" }));
+    const res = await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Błąd bazy danych" });
   });
@@ -131,7 +134,7 @@ function postStrumien(body: ReadableStream<Uint8Array>, headers: Record<string, 
   return new NextRequest(ADRES, init as ConstructorParameters<typeof NextRequest>[1]);
 }
 
-function postKawalki(kawalki: Uint8Array[], headers: Record<string, string> = { "x-api-key": "klucz-bramki" }) {
+function postKawalki(kawalki: Uint8Array[], headers: Record<string, string> = { "x-api-key": BRAMKA }) {
   const body = new ReadableStream<Uint8Array>({
     start(c) {
       for (const k of kawalki) c.enqueue(k);
@@ -148,7 +151,7 @@ function bodyBajtow(bajty: number) {
 }
 
 describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
-  const KLUCZ = { authorization: "Bearer klucz-bramki" };
+  const KLUCZ = { authorization: `Bearer ${BRAMKA}` };
 
   it("Content-Length powyżej limitu: 413 bez czytania body", async () => {
     // Body jest małe, a nagłówek większy: odrzucić może tylko sprawdzenie nagłówka
@@ -333,24 +336,68 @@ describe("cache CDN tylko dla udanych publicznych GET", () => {
     vi.mocked(repo.save).mockResolvedValue(NOWY);
     vi.mocked(repo.remove).mockResolvedValue(WYNIK);
     const odpowiedzi = [
-      await POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" })),
+      await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` })),
       await POST(post('{"id":"ABC","wynik":1}')),
       await (async () => {
         vi.mocked(repo.save).mockResolvedValueOnce({ rodzaj: "duplikat", wynik: WYNIK });
-        return POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" }));
+        return POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
       })(),
       await (async () => {
         vi.mocked(repo.save).mockResolvedValueOnce({ rodzaj: "limit", powod: "nick", ponowZaS: 2 });
-        return POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" }));
+        return POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
       })(),
-      await POST(post("{zepsuty", { authorization: "Bearer klucz-bramki" })),
-      await usun(ID, { authorization: "Bearer klucz-admina" }),
-      await usun("abc", { authorization: "Bearer klucz-admina" }),
+      await POST(post("{zepsuty", { authorization: `Bearer ${BRAMKA}` })),
+      await usun(ID, { authorization: `Bearer ${ADMIN}` }),
+      await usun("abc", { authorization: `Bearer ${ADMIN}` }),
       OPTIONS(),
       OPTIONS_RANKINGU(),
     ];
     expect(odpowiedzi.map((r) => r.status)).toEqual([201, 401, 200, 429, 400, 200, 400, 204, 204]);
     for (const res of odpowiedzi) expect(res.headers.get(CDN)).toBeNull();
+  });
+});
+
+// Klient nie może z odpowiedzi poznać, którego klucza brakuje (np. na wdrożeniu bez zmiennych).
+// Szczegół dostaje tylko właściciel w logu serwera.
+describe("zła konfiguracja kluczy: ogólny błąd 500, szczegół tylko w logu", () => {
+  function log() {
+    return vi.spyOn(console, "error").mockImplementation(() => {});
+  }
+
+  it.each([
+    ["brak API_TOKEN", { API_TOKEN: "" }, "brak zmiennej API_TOKEN"],
+    ["krótki API_TOKEN", { API_TOKEN: "krotki-klucz-bramki" }, "API_TOKEN ma mniej niż 32 znaki"],
+  ])("POST, %s", async (_, env, opis) => {
+    const spy = log();
+    for (const [nazwa, wartosc] of Object.entries(env)) vi.stubEnv(nazwa, wartosc);
+    const res = await POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer krotki-klucz-bramki" }));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Błąd konfiguracji serwera" });
+    expect(repo.save).not.toHaveBeenCalled();
+    const zalogowane = spy.mock.calls.flat().join(" ");
+    expect(zalogowane).toContain(opis);
+    expect(zalogowane).not.toContain("krotki-klucz-bramki");
+  });
+
+  it.each([
+    ["brak ADMIN_TOKEN", { ADMIN_TOKEN: "" }, "brak zmiennej ADMIN_TOKEN"],
+    ["ADMIN_TOKEN taki sam jak API_TOKEN", { ADMIN_TOKEN: BRAMKA }, "ADMIN_TOKEN jest taki sam jak API_TOKEN"],
+  ])("DELETE, %s", async (_, env, opis) => {
+    const spy = log();
+    for (const [nazwa, wartosc] of Object.entries(env)) vi.stubEnv(nazwa, wartosc);
+    const res = await usun(ID, { authorization: `Bearer ${BRAMKA}` });
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Błąd konfiguracji serwera" });
+    expect(repo.remove).not.toHaveBeenCalled();
+    const zalogowane = spy.mock.calls.flat().join(" ");
+    expect(zalogowane).toContain(opis);
+    expect(zalogowane).not.toContain(BRAMKA);
+  });
+
+  it("ten sam klucz w obu zmiennych blokuje tylko usuwanie: zapis działa", async () => {
+    vi.stubEnv("ADMIN_TOKEN", BRAMKA);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
+    expect((await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }))).status).toBe(201);
   });
 });
 
@@ -370,20 +417,20 @@ describe("OPTIONS (zapytanie wstępne przeglądarki)", () => {
 
 describe("DELETE /api/scores/{id} (usuwanie kluczem admina)", () => {
   it("kluczem bramki odpowiada 401 i niczego nie usuwa", async () => {
-    const res = await usun(ID, { authorization: "Bearer klucz-bramki" });
+    const res = await usun(ID, { authorization: `Bearer ${BRAMKA}` });
     expect(res.status).toBe(401);
     expect(repo.remove).not.toHaveBeenCalled();
   });
 
   it("złe id: 400 bez pytania bazy", async () => {
-    const res = await usun("abc", { authorization: "Bearer klucz-admina" });
+    const res = await usun("abc", { authorization: `Bearer ${ADMIN}` });
     expect(res.status).toBe(400);
     expect(repo.remove).not.toHaveBeenCalled();
   });
 
   it("nie ma takiego wyniku: 404", async () => {
     vi.mocked(repo.remove).mockResolvedValue(null);
-    expect((await usun(ID, { authorization: "Bearer klucz-admina" })).status).toBe(404);
+    expect((await usun(ID, { authorization: `Bearer ${ADMIN}` })).status).toBe(404);
   });
 
   it("serwer bez klucza admina: 500 i nic nie jest usuwane", async () => {
@@ -396,14 +443,14 @@ describe("DELETE /api/scores/{id} (usuwanie kluczem admina)", () => {
   it("błąd bazy: 500 bez szczegółów technicznych", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(repo.remove).mockRejectedValue(new Error("timeout"));
-    const res = await usun(ID, { authorization: "Bearer klucz-admina" });
+    const res = await usun(ID, { authorization: `Bearer ${ADMIN}` });
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Błąd bazy danych" });
   });
 
   it("kluczem admina usuwa wynik i zwraca usunięty wpis", async () => {
     vi.mocked(repo.remove).mockResolvedValue(WYNIK);
-    const res = await usun(ID, { "x-api-key": "klucz-admina" });
+    const res = await usun(ID, { "x-api-key": ADMIN });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(WYNIK);
     expect(repo.remove).toHaveBeenCalledWith(ID);
