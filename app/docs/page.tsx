@@ -67,8 +67,8 @@ export default function Docs() {
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
       </p>
       <p>
-        Odpowiedzi GET są przez kilka sekund w cache CDN, więc ranking jest opóźniony do ok. 10 s: przez kilka
-        sekund po zapisie (do ok. 10 s) GET może pokazywać stan sprzed zapisu.
+        Odpowiedzi GET są przez kilka sekund w cache CDN, więc ranking jest opóźniony do ok. 15 s: przez kilka
+        sekund po zapisie (do ok. 15 s) GET może pokazywać stan sprzed zapisu.
       </p>
 
       <h2 className="sekcja">GET /api/ranking</h2>

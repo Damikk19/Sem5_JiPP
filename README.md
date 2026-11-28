@@ -56,7 +56,7 @@ Hosting i baza są na darmowych planach (Vercel Hobby, Neon), a po przekroczeniu
 - **Wszystkie zapisy**: najwyżej 30 nowych wpisów w ciągu ostatnich 60 s. Kolejny dostaje `429`.
 - `429` ma nagłówek `Retry-After` z liczbą sekund, po której zapis przejdzie. Limity sprawdza baza w jednej transakcji z blokadą, więc działają także przy równoległych żądaniach. Wszystkie liczby są w `lib/limity.ts`.
 
-Publiczne odczyty (`GET /api/scores`, `GET /api/ranking`) mają przy odpowiedzi `200` nagłówek `Vercel-CDN-Cache-Control: max-age=5, stale-while-revalidate=25`. Odpowiedź jest świeża przez 5 s, a przez kolejne 25 s CDN Vercela oddaje ją dalej i w tle pyta funkcję o nową. CDN odpowiada wtedy sam, bez wywołania funkcji i bez zapytania do bazy, więc funkcja dostaje najwyżej jedno pytanie na ok. 5 s na adres, niezależnie od liczby widzów. Skutek: ranking jest opóźniony do ok. 10 s. Przez kilka sekund po zapisie albo usunięciu (do ok. 10 s) GET i strona mogą pokazywać stan sprzed zmiany. Po dłuższej przerwie bez pytań pierwszy GET może jeszcze dostać zapamiętaną odpowiedź (najwyżej 30 s starą), a CDN pobiera wtedy w tle nową. Błędy (`500`), zapisy i usunięcia nigdy nie trafiają do cache.
+Publiczne odczyty (`GET /api/scores`, `GET /api/ranking`) mają przy odpowiedzi `200` nagłówek `Vercel-CDN-Cache-Control: max-age=5, stale-while-revalidate=25`. Odpowiedź jest świeża przez 5 s, a przez kolejne 25 s CDN Vercela oddaje ją dalej i w tle pyta funkcję o nową. CDN odpowiada wtedy sam, bez wywołania funkcji i bez zapytania do bazy, więc funkcja dostaje najwyżej jedno pytanie na ok. 5 s na adres, niezależnie od liczby widzów. Skutek: ranking jest opóźniony do ok. 15 s. Przez kilka sekund po zapisie albo usunięciu (do ok. 15 s) GET i strona mogą pokazywać stan sprzed zmiany. Po dłuższej przerwie bez pytań pierwszy GET może jeszcze dostać zapamiętaną odpowiedź (najwyżej 30 s starą), a CDN pobiera wtedy w tle nową. Błędy (`500`), zapisy i usunięcia nigdy nie trafiają do cache.
 
 Cache CDN zmniejsza koszt zwykłego odpytywania, ale nie jest zabezpieczeniem: da się go ominąć. Każdy inny adres to osobny wpis w cache (np. losowe `?x=123`), żądanie z nagłówkiem `Authorization` nie jest brane z cache wcale, a Next.js dopisuje do odpowiedzi `Vary` (m.in. `rsc`, `next-router-state-tree`, `Accept-Encoding`), więc inne wartości tych nagłówków też dają osobne wpisy. Takie żądania wywołują funkcję i pytają bazę, a zatrzymuje je dopiero reguła Firewalla opisana niżej. Dlatego warto co jakiś czas sprawdzić zużycie (Vercel → Usage, konsola Neona).
 
@@ -79,7 +79,7 @@ WHERE "timestamp" BETWEEN '2026-12-01 10:00:00+01' AND '2026-12-01 10:15:00+01'
 RETURNING id, player_id, score, "timestamp";
 ```
 
-Pojedyncze wpisy usuwa `npm run usun -- <id>`. Ranking na stronie odświeży się po ok. 10 s (cache CDN).
+Pojedyncze wpisy usuwa `npm run usun -- <id>`. Ranking na stronie odświeży się po ok. 15 s (cache CDN).
 
 ## Kod
 
