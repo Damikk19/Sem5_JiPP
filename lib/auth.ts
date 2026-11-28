@@ -11,7 +11,7 @@ export type Klucz = "API" | "admina";
 
 // Krótszy klucz w konfiguracji traktujemy jak brak klucza: przykład z README albo z testów, wpisany na
 // serwerze przez pomyłkę, nie może stać się prawdziwym kluczem, a krótki klucz dałoby się zgadywać.
-// Prawdziwe klucze to losowe ciągi, np. z `openssl rand -base64 36` (48 znaków).
+// Prawdziwe klucze to losowe ciągi, np. z `openssl rand -hex 24` (48 znaków).
 const MIN_DLUGOSC_KLUCZA = 32;
 
 // Wszystkie miejsca, w których klient mógł podać klucz. Sprawdzamy każde, bo bramka może

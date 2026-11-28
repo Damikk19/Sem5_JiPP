@@ -27,12 +27,12 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 
 | Nr | Wymaganie |
 | --- | --- |
-| WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`. |
+| WF-08 | API przyjmuje wynik (`POST /api/scores`) tylko z poprawnym kluczem API (w `Authorization`, `X-API-Key` albo `?key=`; sprawdzane jest każde z tych miejsc). Bez klucza odpowiada `401`, zanim przeczyta body. Body większe niż 1024 bajty dostaje `413` (według `Content-Length` albo po przeczytaniu 1024 bajtów, gdy nagłówka nie ma). |
 | WF-09 | API odrzuca niepoprawne dane z opisem błędu (`400`): `id` musi mieć 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem, `wynik` musi być liczbą całkowitą 0–99999 (jako tekst tylko z samych cyfr). |
-| WF-10 | API zapisuje wynik w bazie. Unikalne `id` wpisu i czas zapisu nadaje baza. |
-| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100 z samych cyfr, większa wartość jest przycinana do 100, a 0 do 1; brak albo coś innego, także liczba ujemna, daje 10). |
-| WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`), a dla strony TOP 10 i ostatnie gry w jednym żądaniu (`GET /api/ranking`). |
-| WF-13 | Administrator może usunąć wynik po `id` (`DELETE /api/scores/{id}`) osobnym kluczem admina. Klucz bramki nie pozwala usuwać. |
+| WF-10 | API zapisuje wynik w bazie (`201`). Unikalne `id` wpisu i czas zapisu nadaje baza. Ten sam nick z tym samym wynikiem w ciągu 30 s to ta sama gra: API odpowiada `200` z istniejącym wpisem i nie dopisuje drugiego. Za częste zapisy dostają `429` z `Retry-After` (limity niżej, w wymaganiach niefunkcjonalnych). |
+| WF-11 | API zwraca ranking (`GET /api/scores`) od najlepszego wyniku. Przy remisie wyżej jest ten, kto zagrał wcześniej. Liczbę wyników ustawia `limit` (1–100 z samych cyfr, większa wartość jest przycinana do 100, a 0 do 1; brak albo coś innego, także liczba ujemna, daje 10). Odpowiedź może być do ok. 10 s stara (cache CDN). |
+| WF-12 | API zwraca ostatnie gry (`GET /api/scores?sort=latest`), a dla strony TOP 10 i ostatnie gry w jednym żądaniu (`GET /api/ranking`). Też z cache CDN (do ok. 10 s). |
+| WF-13 | Administrator może usunąć wynik po `id` (`DELETE /api/scores/{id}`) osobnym kluczem admina. Klucz bramki nie pozwala usuwać, a gdy oba klucze w konfiguracji są takie same, usuwanie jest zablokowane. Usunięty wpis może jeszcze przez ok. 10 s być widoczny w rankingu (cache CDN). |
 
 ### Ranking
 
@@ -45,12 +45,13 @@ System rankingu gry RAM INVADERS na micro:bicie. Dokument uzupełnia diagram C4 
 
 ## Wymagania niefunkcjonalne
 
-- **Bezpieczeństwo**: klucze są tylko w zmiennych środowiskowych serwera, nie w kodzie. Klucz porównywany jest w stałym czasie. Brak skonfigurowanego klucza blokuje operację. Dane sprawdza API, a dodatkowo `CHECK` w bazie. Strona wysyła nagłówki bezpieczeństwa (CSP, `nosniff`, `Referrer-Policy`), a logi błędów nie zawierają haseł.
+- **Bezpieczeństwo**: klucze są tylko w zmiennych środowiskowych serwera, nie w kodzie. Klucz porównywany jest w stałym czasie. Brak skonfigurowanego klucza albo klucz krótszy niż 32 znaki blokuje operację, a odpowiedź `500` nie zdradza, którego klucza brakuje (szczegół jest tylko w logu). Dane sprawdza API, a dodatkowo `CHECK` w bazie. Strona wysyła nagłówki bezpieczeństwa (CSP, `nosniff`, `Referrer-Policy`), a logi błędów nie zawierają haseł.
 - **Uprawnienia**: dwa klucze z różnymi uprawnieniami. Klucz zapisu tylko dopisuje, klucz admina tylko usuwa.
 - **Wydajność**: odpowiedź API w ok. 0,2 s. Ranking korzysta z indeksu `(score DESC, timestamp ASC)`, a ostatnie gry z indeksu `(timestamp DESC, id DESC)`.
 - **Kompatybilność**: gra działa na micro:bicie V1 i V2 (uniwersalny plik `.hex`).
 - **Koszt**: hosting (Vercel) i baza (Neon) na darmowych planach z miesięcznymi limitami (m.in. 1 mln wywołań funkcji, 100 godzin pracy bazy). Dlatego strona pyta jednym żądaniem co 5 s, a w czuwaniu co 30 min, żeby baza mogła zasnąć.
 - **Wdrażanie**: każdy push na `main` automatycznie buduje i wdraża nową wersję. Nieudany build nie zastępuje działającej wersji.
+- **Limity (ochrona przed nadużyciem)**: skrypt ani pętla w Postmanie nie mogą zalać rankingu ani wyczerpać darmowych planów. Body zapisu ma najwyżej 1024 bajty (`413`). Ten sam nick i wynik w ciągu 30 s nie tworzy nowego wpisu (`200` z istniejącym). Inny wynik tego samego nicku przed upływem 5 s od poprzedniego zapisu i więcej niż 30 nowych wpisów w ciągu 60 s (łącznie) dostają `429` z `Retry-After`. Limity sprawdza baza w jednej transakcji z blokadą, więc działają także przy równoległych żądaniach. Publiczne odczyty mają cache CDN: odpowiedź jest świeża przez 5 s, a przez kolejne 25 s CDN oddaje ją dalej i w tle pobiera nową. Funkcja i baza dostają więc najwyżej jedno pytanie na ok. 5 s niezależnie od liczby widzów, a strona (pyta co 5 s) pokazuje dane najwyżej ok. 10 s stare. Pierwsze pytanie po przerwie może jeszcze dostać odpowiedź sprzed zapisu (najwyżej 30 s starą), a następne już nową. Dodatkowo reguła Firewalla Vercela (ustawiana w panelu, nie w repo) zatrzymuje więcej niż 200 żądań do `/api` na minutę z jednego IP (`429`), zanim wywołają funkcję. Każdy udany zapis i usunięcie zostawia w logach jedną linię (id, nick, wynik), a sprzątanie po zalewie opisuje README.
 
 ## Komunikacja
 
@@ -112,7 +113,7 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 { "id": "3f2b8c1e-7a4d-4c2b-9e1f-0a6b5c4d3e2f", "playerId": "ABC", "score": 123, "timestamp": "2026-11-23T13:09:54.827Z" }
 ```
 
-`GET /api/scores` zwraca tablicę takich obiektów, a `POST` (`201`) i `DELETE` (`200`) zwracają jeden. `GET /api/ranking` zwraca obiekt `{ "top": Score[], "latest": Score[] }` (TOP 10 i 10 ostatnich gier).
+`GET /api/scores` zwraca tablicę takich obiektów, a `POST` (`201` dla nowego wpisu, `200` dla duplikatu) i `DELETE` (`200`) zwracają jeden. `GET /api/ranking` zwraca obiekt `{ "top": Score[], "latest": Score[] }` (TOP 10 i 10 ostatnich gier).
 
 ### 6. Błąd
 
@@ -125,4 +126,6 @@ Tekst `ID_API;NICK;WYNIK`, np. `DK;ABC;123`, maksymalnie 19 znaków (limit pakie
 | `400` | niepoprawne dane albo `id` |
 | `401` | brak klucza albo zły klucz |
 | `404` | nie ma wyniku o takim `id` (usuwanie) |
-| `500` | błąd bazy albo brak skonfigurowanego klucza na serwerze |
+| `413` | body zapisu większe niż 1024 bajty |
+| `429` | za częste zapisy (ten sam nick przed upływem 5 s albo ponad 30 wpisów w minucie); nagłówek `Retry-After` podaje, po ilu sekundach spróbować |
+| `500` | błąd bazy albo zła konfiguracja kluczy na serwerze (ogólny komunikat, szczegół w logu) |

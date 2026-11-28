@@ -32,8 +32,26 @@ export default function Docs() {
         każde z tych miejsc.
       </p>
       <p>
-        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>400</code> z opisem błędu danych,{" "}
-        <code>401</code> bez poprawnego klucza albo <code>500</code> przy błędzie serwera.
+        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>200</code> z istniejącym wpisem, gdy ta sama gra
+        przyszła drugi raz (duplikat), <code>400</code> z opisem błędu danych, <code>401</code> bez poprawnego
+        klucza, <code>413</code> przy body większym niż 1024 bajty, <code>429</code> przy za częstych zapisach
+        (nagłówek <code>Retry-After</code> podaje, po ilu sekundach spróbować) albo <code>500</code> przy błędzie
+        serwera.
+      </p>
+
+      <h2 className="sekcja">Limity zapisów</h2>
+      <p>
+        Body najwyżej 1024 bajty (<code>413</code>). Ten sam <code>id</code> z tym samym <code>wynik</code> w ciągu
+        30 s to ta sama gra: <code>200</code> z istniejącym wpisem, bez drugiego wpisu, więc ponowienie żądania jest
+        bezpieczne.
+      </p>
+      <p>
+        Inny wynik tego samego <code>id</code> przed upływem 5 s od poprzedniego zapisu oraz więcej niż 30 nowych
+        wpisów w ciągu 60 s (łącznie) dostają <code>429</code> z <code>Retry-After</code>.
+      </p>
+      <p>
+        Wszystkie adresy <code>/api</code> mają też limit 200 żądań na minutę z jednego adresu IP (reguła Firewalla
+        Vercela, ustawiona w panelu, nie w kodzie). Powyżej limitu: <code>429</code>.
       </p>
 
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
@@ -44,11 +62,15 @@ export default function Docs() {
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
       </p>
+      <p>
+        Odpowiedzi GET są przez kilka sekund w cache CDN, więc ranking jest opóźniony do ok. 10 s. Pierwszy GET
+        zaraz po zapisie może jeszcze pokazać stan sprzed zapisu, a następny już nowy.
+      </p>
 
       <h2 className="sekcja">GET /api/ranking</h2>
       <p>
         Dane dla strony z rankingiem w jednym żądaniu: <code>{`{ top, latest }`}</code>, czyli TOP 10 i 10
-        ostatnich gier. Bez klucza. <code>500</code> przy błędzie serwera.
+        ostatnich gier. Bez klucza, z tym samym cache CDN co wyżej. <code>500</code> przy błędzie serwera.
       </p>
 
       <h2 className="sekcja">DELETE /api/scores/&lt;id&gt;</h2>
