@@ -2,7 +2,7 @@
 // window, document, matchMedia i localStorage są czytane tylko w efektach i zdarzeniach, nigdy w renderze:
 // strona renderuje się na serwerze i przy hydracji musi wyglądać tak samo jak tam.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { faza } from "@/lib/atrakcja";
+import { krokCyklu, ruchCyklu, startCyklu } from "@/lib/atrakcja";
 import { doZapisu, harmonogram, KLUCZ, zagraj, zapamietany, type Rodzaj } from "@/lib/dzwiek";
 
 export function useMedia(zapytanie: string) {
@@ -33,14 +33,17 @@ export function useWidoczna() {
 export function usePokaz(mozna: boolean) {
   const [pokaz, setPokaz] = useState(false);
   const [seria, setSeria] = useState(0);
-  // Ostatnia aktywność w ms od otwarcia strony (performance.now): na starcie wejście na stronę
-  const aktywnosc = useRef(0);
-  const widac = useRef(false);
+  const cykl = useRef(startCyklu(0));
 
   const ruch = useCallback(() => {
-    aktywnosc.current = performance.now();
-    widac.current = false;
+    cykl.current = ruchCyklu(cykl.current, performance.now());
     setPokaz(false);
+  }, []);
+
+  // Zamontowanie strony rankingu (także powrót z innej podstrony): minuta liczy się od teraz.
+  // Ten efekt musi być przed efektem z timerem, bo efekty układu biegną w kolejności deklaracji.
+  useLayoutEffect(() => {
+    cykl.current = startCyklu(performance.now(), cykl.current.seria);
   }, []);
 
   useEffect(() => {
@@ -63,16 +66,18 @@ export function usePokaz(mozna: boolean) {
     if (!mozna) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const plan = () => {
-      const f = faza(performance.now() - aktywnosc.current);
-      if (f.pokaz && !widac.current) setSeria((n) => n + 1);
-      widac.current = f.pokaz;
-      setPokaz(f.pokaz);
-      timer = setTimeout(plan, Math.ceil(f.doZmiany));
+      const { cykl: c, doZmiany } = krokCyklu(cykl.current, performance.now());
+      cykl.current = c;
+      setPokaz(c.pokaz);
+      setSeria(c.seria);
+      timer = setTimeout(plan, Math.ceil(doZmiany));
     };
     plan();
     return () => {
       clearTimeout(timer);
-      widac.current = false;
+      // Po powrocie warunków (np. koniec ekranu rekordu) pokaz liczy się jako nowy
+      cykl.current = { ...cykl.current, pokaz: false };
+      setPokaz(false);
     };
   }, [mozna]);
 

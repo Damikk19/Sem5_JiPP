@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DUZY_EKRAN, faza, moznaPokazac, type Warunki } from "@/lib/atrakcja";
+import { DUZY_EKRAN, faza, krokCyklu, moznaPokazac, ruchCyklu, startCyklu, type Warunki } from "@/lib/atrakcja";
 
 // Ekran pokazowy (WF-19): po minucie bez ruchu 10 s pokazu, 20 s tabeli, 10 s pokazu...
 describe("cykl ekranu pokazowego", () => {
@@ -28,16 +28,6 @@ describe("cykl ekranu pokazowego", () => {
     expect(faza(60 * S + 100 * 30 * S + 15 * S)).toEqual({ pokaz: false, doZmiany: 15 * S });
   });
 
-  it("aktywność liczy minutę od nowa: czas liczony jest od ostatniej aktywności", () => {
-    const start = 500_000;
-    const klik = start + 65 * S;
-    expect(faza(klik - start).pokaz).toBe(true);
-    // zaraz po kliknięciu tabela i pełna minuta do pokazu
-    expect(faza(klik - klik)).toEqual({ pokaz: false, doZmiany: 60 * S });
-    expect(faza(klik + 59 * S - klik).pokaz).toBe(false);
-    expect(faza(klik + 60 * S - klik).pokaz).toBe(true);
-  });
-
   it("czas sprzed aktywności (np. zegar cofnięty) daje tabelę", () => {
     expect(faza(-5 * S)).toEqual({ pokaz: false, doZmiany: 60 * S });
   });
@@ -49,6 +39,50 @@ describe("cykl ekranu pokazowego", () => {
       expect(faza(t + f.doZmiany).pokaz).not.toBe(f.pokaz);
       expect(faza(t + f.doZmiany - 1).pokaz).toBe(f.pokaz);
     }
+  });
+});
+
+describe("cykl pokazu na stronie: start, aktywność, kolejne pokazy", () => {
+  const S = 1_000;
+
+  it("minuta liczy się od zamontowania strony rankingu, nie od otwarcia karty", () => {
+    // karta otwarta w chwili 0, ranking zamontowany po 62 s (np. powrót z /docs)
+    const c = startCyklu(62 * S);
+    expect(krokCyklu(c, 62 * S)).toEqual({ cykl: { od: 62 * S, pokaz: false, seria: 0 }, doZmiany: 60 * S });
+    expect(krokCyklu(c, 62 * S + 59 * S).cykl.pokaz).toBe(false);
+    expect(krokCyklu(c, 62 * S + 60 * S).cykl.pokaz).toBe(true);
+  });
+
+  it("aktywność w trakcie pokazu: od razu tabela i pełna minuta do kolejnego pokazu", () => {
+    const wPokazie = krokCyklu(startCyklu(0), 65 * S).cykl;
+    expect(wPokazie.pokaz).toBe(true);
+    const poKliku = ruchCyklu(wPokazie, 65 * S);
+    expect(poKliku.pokaz).toBe(false);
+    expect(krokCyklu(poKliku, 65 * S)).toEqual({ cykl: { ...poKliku, pokaz: false }, doZmiany: 60 * S });
+    // bez resetu po 35 s byłby już kolejny pokaz (90 s od startu)
+    expect(krokCyklu(poKliku, 100 * S).cykl.pokaz).toBe(false);
+    expect(krokCyklu(poKliku, 125 * S - 1).cykl.pokaz).toBe(false);
+    expect(krokCyklu(poKliku, 125 * S).cykl.pokaz).toBe(true);
+  });
+
+  it("aktywność przed upływem minuty odsuwa pokaz", () => {
+    const c = ruchCyklu(startCyklu(0), 50 * S);
+    expect(krokCyklu(c, 60 * S).cykl.pokaz).toBe(false);
+    expect(krokCyklu(c, 110 * S).cykl.pokaz).toBe(true);
+  });
+
+  it("seria rośnie raz na każdy nowy pokaz", () => {
+    let c = startCyklu(0);
+    const serie: number[] = [];
+    for (let t = 0; t <= 130 * S; t += 500) {
+      c = krokCyklu(c, t).cykl;
+      serie.push(c.seria);
+    }
+    // pokazy od 60 s, 90 s i 120 s
+    expect(serie.at(-1)).toBe(3);
+    expect(krokCyklu(krokCyklu(startCyklu(0), 61 * S).cykl, 62 * S).cykl.seria).toBe(1);
+    // ponowne zamontowanie zachowuje serię, więc demo leci dalej
+    expect(startCyklu(5 * S, 3).seria).toBe(3);
   });
 });
 

@@ -20,6 +20,28 @@ export function faza(odAktywnosci: number): { pokaz: boolean; doZmiany: number }
   return { pokaz: false, doZmiany: POKAZ_MS + TABELA_MS - wCyklu };
 }
 
+// Stan cyklu pokazu. od: chwila ostatniej aktywności albo wejścia na stronę rankingu (ms zegara
+// monotonicznego, performance.now). seria rośnie przy każdym nowym pokazie (demo leci wtedy dalej).
+export type Cykl = { od: number; pokaz: boolean; seria: number };
+
+// Zamontowanie strony rankingu: wejście albo powrót z innej podstrony (Next.js pokazuje wtedy zachowaną
+// stronę, ale zegar dokumentu liczy dalej). Minuta liczy się od tej chwili, nie od otwarcia karty.
+export function startCyklu(teraz: number, seria = 0): Cykl {
+  return { od: teraz, pokaz: false, seria };
+}
+
+// Nowa gra, kliknięcie, klawisz, powrót do karty: od razu tabela i minuta od nowa
+export function ruchCyklu(c: Cykl, teraz: number): Cykl {
+  return { ...c, od: teraz, pokaz: false };
+}
+
+// Co pokazać teraz i za ile ms sprawdzić znowu
+export function krokCyklu(c: Cykl, teraz: number): { cykl: Cykl; doZmiany: number } {
+  const f = faza(teraz - c.od);
+  const seria = f.pokaz && !c.pokaz ? c.seria + 1 : c.seria;
+  return { cykl: { od: c.od, pokaz: f.pokaz, seria }, doZmiany: f.doZmiany };
+}
+
 export type Warunki = {
   duzyEkran: boolean;
   ograniczonyRuch: boolean;
