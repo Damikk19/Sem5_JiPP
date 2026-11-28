@@ -176,6 +176,18 @@ describe("co widać na stronie po nowych danych", () => {
     expect(przyjmij(poRekordzie, ranking(A, B, C, D), ["D"]).widok.czeka?.nowe).toEqual(["D"]);
   });
 
+  it("rekord usunięty i słabsza nowa gra na 1. miejscu w jednym odświeżeniu: próg to rekord widoczny na stronie", () => {
+    // A (100) usunięty, nowa D (60) wskakuje na 1. miejsce nad B (50): bez ekranu rekordu (jawne odstępstwo autora)
+    const D = gra("D", 60, 4);
+    const { widok, dzwiek } = przyjmij(poStarcie(), ranking(B, C, D), ["D"]);
+    expect(widok.tabela?.dane.top[0]).toEqual(D);
+    expect(widok.rekord).toBeNull();
+    expect(dzwiek).toBe("nowa-gra");
+    // z wynikiem wyższym od widocznego rekordu to już rekord
+    const E = gra("E", 101, 5);
+    expect(przyjmij(poStarcie(), ranking(B, C, E), ["E"]).widok.rekord).toEqual(E);
+  });
+
   it("drugi rekord w trakcie ekranu rekordu nie otwiera drugiego ekranu", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 900, 5);
