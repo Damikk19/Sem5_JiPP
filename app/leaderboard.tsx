@@ -5,14 +5,15 @@
 // więc nic nie skacze, kiedy pojawia się pierwszy wynik. Nowe wyniki migają, a wiersze, które zmieniły
 // miejsce, przeskakują na nowe. Rekord ma własny ekran, a po minucie bez gier na dużym ekranie leci pokaz.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { DUZY_EKRAN, moznaPokazac, OGRANICZONY_RUCH } from "@/lib/atrakcja";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
-import { komunikat, POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
+import { komunikatGry, komunikatRekordu, POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
 import Demo from "./demo";
 import NowyRekord from "./nowy-rekord";
-import { useDzwiek, useMedia, usePokaz, useWidoczna } from "./przegladarka";
+import { useDzwiek, useMedia, usePokaz, useWidoczna, useZamontowany } from "./przegladarka";
 
 const TOP = 10;
 const CYFRY = String(MAX_SCORE).length;
@@ -58,6 +59,7 @@ export default function Leaderboard() {
   const duzyEkran = useMedia(DUZY_EKRAN);
   const ograniczonyRuch = useMedia(OGRANICZONY_RUCH);
   const widoczna = useWidoczna();
+  const zamontowany = useZamontowany();
   const { wlaczony, przelacz, graj } = useDzwiek();
   const pokaz = usePokaz(
     moznaPokazac({ duzyEkran, ograniczonyRuch, widoczna, polaczenie: status === "live", rekord: widok.rekord !== null }),
@@ -210,13 +212,22 @@ export default function Leaderboard() {
         <button type="button" className="dzwiek" aria-pressed={wlaczony} onClick={przelacz}>
           DŹWIĘK: {wlaczony ? "WŁ" : "WYŁ"}
         </button>
-        {/* Dla czytnika ekranu: miganie i ekran rekordu widać tylko na ekranie */}
+        {/* Dla czytnika ekranu: miganie widać tylko na ekranie */}
         <p className="sr-only" aria-live="polite">
-          {komunikat(widok)}
+          {komunikatGry(widok)}
         </p>
 
         {pokaz.pokaz && <Demo key={pokaz.seria} seria={pokaz.seria} />}
       </div>
+
+      {/* Komunikat o rekordzie poza stroną: pod ekranem rekordu strona jest nieaktywna razem ze swoimi regionami */}
+      {zamontowany &&
+        createPortal(
+          <p className="sr-only" aria-live="polite" data-poza-inert="">
+            {komunikatRekordu(widok)}
+          </p>,
+          document.body,
+        )}
 
       {widok.rekord && (
         // Klucz: wyższy rekord w trakcie to nowy ekran z własnymi 5 s

@@ -1,9 +1,20 @@
 // Stan przeglądarki dla rankingu: media query, widoczność karty, cykl pokazu i dźwięk.
 // window, document, matchMedia i localStorage są czytane tylko w efektach i zdarzeniach, nigdy w renderze:
 // strona renderuje się na serwerze i przy hydracji musi wyglądać tak samo jak tam.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { krokCyklu, ruchCyklu, startCyklu } from "@/lib/atrakcja";
 import { doZapisu, harmonogram, KLUCZ, zagraj, zapamietany, type Rodzaj } from "@/lib/dzwiek";
+
+const bezZmian = () => () => {};
+
+// Czy komponent jest już w przeglądarce (po hydracji). Portale do document.body tylko wtedy.
+export function useZamontowany() {
+  return useSyncExternalStore(
+    bezZmian,
+    () => true,
+    () => false,
+  );
+}
 
 export function useMedia(zapytanie: string) {
   const [pasuje, setPasuje] = useState(false);

@@ -85,12 +85,19 @@ export function zamknij(w: Widok): { widok: Widok; dzwiek: Dzwiek } {
   };
 }
 
-// Komunikat dla czytnika ekranu (region aria-live). Rekord z otwartego ekranu albo ten, który przyniósł dane
-// w tabeli: po zamknięciu ekranu tekst się nie zmienia, więc czytnik nie czyta go drugi raz.
-export function komunikat(w: Widok) {
+// Komunikaty dla czytnika ekranu (regiony aria-live). O rekordzie mówi osobny region poza stroną, bo pod
+// ekranem rekordu strona jest nieaktywna (inert) razem ze swoimi regionami. O zwykłej grze mówi region w tabeli.
+
+// Rekord z otwartego ekranu albo ten, który przyniósł dane w tabeli: po zamknięciu ekranu tekst się nie zmienia,
+// więc czytnik nie czyta go drugi raz
+export function komunikatRekordu(w: Widok) {
   const rekord = w.rekord ?? w.tabela?.rekord;
-  if (rekord) return `Nowy rekord: ${rekord.playerId}, ${rekord.score} pkt`;
+  return rekord ? `Nowy rekord: ${rekord.playerId}, ${rekord.score} pkt` : "";
+}
+
+// Ostatnia gra, jeśli jest nowa. Przy rekordzie mówi tylko region rekordu.
+export function komunikatGry(w: Widok) {
+  if (komunikatRekordu(w)) return "";
   const ostatnia = w.tabela?.dane.latest[0];
-  if (ostatnia && w.tabela?.nowe.includes(ostatnia.id)) return `Nowy wynik: ${ostatnia.playerId}, ${ostatnia.score} pkt`;
-  return "";
+  return ostatnia && w.tabela?.nowe.includes(ostatnia.id) ? `Nowy wynik: ${ostatnia.playerId}, ${ostatnia.score} pkt` : "";
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ranking } from "@/lib/odswiezanie";
-import { komunikat, nowyRekord, POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
+import { komunikatGry, komunikatRekordu, nowyRekord, POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
 import type { Score } from "@/lib/score";
 
 // Kiedy strona świętuje NEW HIGH SCORE (WF-18) i w jakiej kolejności pokazuje dane
@@ -259,7 +259,7 @@ describe("zamknięcie ekranu rekordu", () => {
     expect(widok.tabela?.dane.top.map((g) => g.id)).toEqual(["D", "B", "E", "C"]);
     expect(widok.tabela?.nowe).toEqual(["D", "E"]);
     expect(widok.tabela?.rekord).toEqual(D);
-    expect(komunikat(widok)).toBe("Nowy rekord: D, 500 pkt");
+    expect(komunikatRekordu(widok)).toBe("Nowy rekord: D, 500 pkt");
     expect(dzwiek).toBeNull();
   });
 
@@ -271,7 +271,7 @@ describe("zamknięcie ekranu rekordu", () => {
     const { widok, dzwiek } = przyjmij(w, ranking(A, B, C, D), []);
     expect(widok.tabela?.nowe).toEqual([]);
     expect(widok.tabela?.rekord).toBeNull();
-    expect(komunikat(widok)).toBe("");
+    expect(komunikatRekordu(widok)).toBe("");
     expect(dzwiek).toBeNull();
   });
 
@@ -296,7 +296,7 @@ describe("zamknięcie ekranu rekordu", () => {
     expect(widok.tabela?.nowe).toEqual([]);
     expect(widok.tabela?.rekord).toBeNull();
     expect(widok.rekord).toBeNull();
-    expect(komunikat(widok)).toBe("");
+    expect(komunikatRekordu(widok)).toBe("");
     expect(dzwiek).toBeNull();
     // kolejne pytanie bez nowych gier niczego nie wskrzesza
     expect(przyjmij(widok, ranking(A, B, C, D, M, L), []).widok.tabela?.nowe).toEqual([]);
@@ -317,34 +317,37 @@ describe("zamknięcie ekranu rekordu", () => {
   });
 });
 
-describe("komunikat dla czytnika ekranu", () => {
-  it("nowa gra: nick i wynik ostatniej gry, pierwsze pobranie i brak nowych gier: pusto", () => {
-    expect(komunikat(POCZATEK)).toBe("");
-    expect(komunikat(poStarcie())).toBe("");
+describe("komunikaty dla czytnika ekranu", () => {
+  it("nowa gra: region gry podaje nick i wynik ostatniej gry, pierwsze pobranie i brak nowych gier: pusto", () => {
+    expect(komunikatGry(POCZATEK)).toBe("");
+    expect(komunikatGry(poStarcie())).toBe("");
     const D = gra("D", 60, 4);
     const w = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
-    expect(komunikat(w)).toBe("Nowy wynik: D, 60 pkt");
-    expect(komunikat(przyjmij(w, ranking(A, B, C, D), []).widok)).toBe("");
+    expect(komunikatGry(w)).toBe("Nowy wynik: D, 60 pkt");
+    expect(komunikatRekordu(w)).toBe("");
+    expect(komunikatGry(przyjmij(w, ranking(A, B, C, D), []).widok)).toBe("");
   });
 
-  it("rekord: ten sam tekst przy otwartym ekranie, po zamknięciu i po kolejnym pytaniu bez gier", () => {
+  it("rekord: region rekordu ma ten sam tekst przy otwartym ekranie, po zamknięciu i po kolejnym pytaniu bez gier", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 20, 5);
     let w = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
-    expect(komunikat(w)).toBe("Nowy rekord: D, 500 pkt");
+    expect(komunikatRekordu(w)).toBe("Nowy rekord: D, 500 pkt");
     // gra, która przyszła w trakcie, nie zmienia komunikatu o rekordzie
     w = przyjmij(w, ranking(A, B, C, D, E), ["E"]).widok;
-    expect(komunikat(w)).toBe("Nowy rekord: D, 500 pkt");
+    expect(komunikatRekordu(w)).toBe("Nowy rekord: D, 500 pkt");
     w = zamknij(w).widok;
-    expect(komunikat(w)).toBe("Nowy rekord: D, 500 pkt");
-    expect(komunikat(przyjmij(w, ranking(A, B, C, D, E), []).widok)).toBe("Nowy rekord: D, 500 pkt");
+    expect(komunikatRekordu(w)).toBe("Nowy rekord: D, 500 pkt");
+    expect(komunikatRekordu(przyjmij(w, ranking(A, B, C, D, E), []).widok)).toBe("Nowy rekord: D, 500 pkt");
+    // przy rekordzie region gry milczy, żeby czytnik nie mówił dwa razy
+    expect(komunikatGry(w)).toBe("");
   });
 
   it("wyższy rekord w trakcie zmienia komunikat", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 900, 5);
     const w = przyjmij(przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok, ranking(A, B, C, D, E), ["E"]).widok;
-    expect(komunikat(w)).toBe("Nowy rekord: E, 900 pkt");
-    expect(komunikat(zamknij(w).widok)).toBe("Nowy rekord: E, 900 pkt");
+    expect(komunikatRekordu(w)).toBe("Nowy rekord: E, 900 pkt");
+    expect(komunikatRekordu(zamknij(w).widok)).toBe("Nowy rekord: E, 900 pkt");
   });
 });

@@ -2,23 +2,14 @@
 
 // Ekran NEW HIGH SCORE na cały ekran: nad starą tabelą, zanim do niej wejdą nowe dane.
 // Portal do body, czyli poza powiększeniem (zoom) trybu TV, ale pod liniami kineskopu.
-// Czytnik ekranu dostaje komunikat z regionu aria-live w tabeli, więc sam ekran jest aria-hidden.
+// Czytnik ekranu dostaje komunikat z osobnego regionu aria-live (app/leaderboard.tsx), więc sam ekran jest aria-hidden.
 // Strona pod spodem jest na ten czas nieaktywna (inert): klawiatura i kliknięcia w nią nie trafiają.
-import { useEffect, useSyncExternalStore } from "react";
+// Ekran i region z komunikatem mają atrybut data-poza-inert.
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { REKORD_MS } from "@/lib/rekord";
+import { useZamontowany } from "./przegladarka";
 import RamSprite from "./ram-sprite";
-
-const bezZmian = () => () => {};
-
-// Portal dopiero po zamontowaniu: na serwerze i przy hydracji nie ma jeszcze document.body
-function useZamontowany() {
-  return useSyncExternalStore(
-    bezZmian,
-    () => true,
-    () => false,
-  );
-}
 
 type Props = { nick: string; wynik: string; zamknij: () => void };
 
@@ -41,7 +32,7 @@ export default function NowyRekord({ nick, wynik, zamknij }: Props) {
     const aktywny = document.activeElement;
     const poprzedni = aktywny instanceof HTMLElement && aktywny !== document.body ? aktywny : null;
     const tlo = Array.from(document.body.children).filter(
-      (el): el is HTMLElement => el instanceof HTMLElement && !el.classList.contains("rekord") && !el.inert,
+      (el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute("data-poza-inert") && !el.inert,
     );
     for (const el of tlo) el.inert = true;
     return () => {
@@ -56,7 +47,7 @@ export default function NowyRekord({ nick, wynik, zamknij }: Props) {
 
   return createPortal(
     // Klik w ekran rekordu zamyka go i nie trafia w nic pod spodem
-    <div className="rekord" aria-hidden onClick={zamknij}>
+    <div className="rekord" aria-hidden data-poza-inert="" onClick={zamknij}>
       <p className="rekord-tytul swieci">NEW HIGH SCORE!</p>
       <p className="rekord-gracz swieci">
         <bdi>{nick}</bdi>
