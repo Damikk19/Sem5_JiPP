@@ -2,7 +2,7 @@
 // Usuwanie pojedynczego wyniku jest w [id]/route.ts.
 import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
-import { authError, json, preflight } from "@/lib/http";
+import { authError, json, jsonPubliczny, preflight } from "@/lib/http";
 import { logError } from "@/lib/log";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   const latest = request.nextUrl.searchParams.get("sort") === "latest";
 
   try {
-    return json(latest ? await getLatest(limit) : await getTop(limit));
+    return jsonPubliczny(latest ? await getLatest(limit) : await getTop(limit));
   } catch (e) {
     logError("GET /api/scores", e);
     return json({ error: "Błąd bazy danych" }, 500);

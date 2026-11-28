@@ -174,6 +174,56 @@ describe("GET /api/ranking (dane dla strony w jednym żądaniu)", () => {
   });
 });
 
+// CDN Vercela zapamiętuje odpowiedź tylko z tym nagłówkiem. Błąd zapamiętany na 30 s pokazywałby stronie
+// brak sygnału po naprawie bazy, a zapis czy usunięcie w cache CDN nie mają czego szukać.
+describe("cache CDN tylko dla udanych publicznych GET", () => {
+  const CDN = "vercel-cdn-cache-control";
+
+  it.each([
+    ["GET /api/scores", () => GET(new NextRequest(ADRES))],
+    ["GET /api/scores?sort=latest", () => GET(new NextRequest(`${ADRES}?sort=latest`))],
+    ["GET /api/ranking", () => RANKING()],
+  ])("%s z odpowiedzią 200 ma krótki cache CDN", async (_, wyslij) => {
+    vi.mocked(repo.getTop).mockResolvedValue([WYNIK]);
+    vi.mocked(repo.getLatest).mockResolvedValue([WYNIK]);
+    const res = await wyslij();
+    expect(res.status).toBe(200);
+    expect(res.headers.get(CDN)).toBe("max-age=5, stale-while-revalidate=25");
+    // Przeglądarka nie dostaje własnego cache: strona i tak pyta co 5 s
+    expect(res.headers.get("cache-control")).toBeNull();
+  });
+
+  it.each([
+    ["GET /api/scores", () => GET(new NextRequest(ADRES))],
+    ["GET /api/scores?sort=latest", () => GET(new NextRequest(`${ADRES}?sort=latest`))],
+    ["GET /api/ranking", () => RANKING()],
+  ])("%s z błędem bazy (500) nie ma cache", async (_, wyslij) => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(repo.getTop).mockRejectedValue(new Error("timeout"));
+    vi.mocked(repo.getLatest).mockRejectedValue(new Error("timeout"));
+    const res = await wyslij();
+    expect(res.status).toBe(500);
+    expect(res.headers.get(CDN)).toBeNull();
+  });
+
+  it("zapis, odrzucony zapis i usuwanie nie mają cache", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.remove).mockResolvedValue(WYNIK);
+    const odpowiedzi = [
+      await POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" })),
+      await POST(post('{"id":"ABC","wynik":1}')),
+      await POST(post("{zepsuty", { authorization: "Bearer klucz-bramki" })),
+      await usun(ID, { authorization: "Bearer klucz-admina" }),
+      await usun("abc", { authorization: "Bearer klucz-admina" }),
+      OPTIONS(),
+      OPTIONS_RANKINGU(),
+    ];
+    expect(odpowiedzi.map((r) => r.status)).toEqual([201, 401, 400, 200, 400, 204, 204]);
+    for (const res of odpowiedzi) expect(res.headers.get(CDN)).toBeNull();
+  });
+});
+
 describe("OPTIONS (zapytanie wstępne przeglądarki)", () => {
   it.each([
     ["/api/scores", OPTIONS, "GET, POST, OPTIONS"],
