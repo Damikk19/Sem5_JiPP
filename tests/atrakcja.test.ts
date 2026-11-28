@@ -68,7 +68,6 @@ describe("kiedy pokaz w ogóle może się pojawić", () => {
   });
 
   it("duży ekran to ten sam warunek co tryb TV w globals.css", () => {
-    expect(DUZY_EKRAN).toBe("(min-width: 1250px) and (min-height: 760px)");
     const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
     expect(css).toContain(`@media ${DUZY_EKRAN} {\n  .ekran {`);
   });

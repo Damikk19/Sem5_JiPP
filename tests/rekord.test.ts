@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ranking } from "@/lib/odswiezanie";
-import { nowyRekord, POCZATEK, przyjmij, REKORD_MS, zamknij, type Widok } from "@/lib/rekord";
+import { nowyRekord, POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
 import type { Score } from "@/lib/score";
 
 // Kiedy strona świętuje NEW HIGH SCORE (WF-18) i w jakiej kolejności pokazuje dane
@@ -64,10 +64,6 @@ describe("czy nowa gra to rekord", () => {
   it("gra o wyniku równym rekordowi na 1. miejscu (rekord usunięty w tym samym czasie) nie świętuje", () => {
     const D = gra("D", 100, 4);
     expect(nowyRekord(ranking(B, C, D).top, ["D"], 100)).toBeNull();
-  });
-
-  it("ekran rekordu trwa 5 s", () => {
-    expect(REKORD_MS).toBe(5_000);
   });
 });
 

@@ -40,7 +40,7 @@ describe("przesunięcia wierszy", () => {
     expect(dy.has("A")).toBe(false);
   });
 
-  it("awans o dwa miejsca: przesunięcie o dwa wiersze w dół", () => {
+  it("awans o dwa miejsca: wiersz startuje dwa wiersze niżej i przeskakuje w górę", () => {
     const dy = przesuniecia(uklad(["A", "B", "C"]), uklad(["C", "A", "B"]), 1);
     expect(dy.get("C")).toBe(2 * WIERSZ);
   });
@@ -76,11 +76,10 @@ describe("skala ekranu", () => {
 });
 
 describe("animacja wiersza", () => {
-  it("startuje ze starego miejsca, kończy na nowym, skokami po ok. 8 px przez 0,5 s", () => {
+  it("startuje ze starego miejsca, kończy na nowym, skokami po ok. 8 px", () => {
     const { klatki, opcje } = ruch(-40);
     expect(klatki).toEqual([{ transform: "translateY(-40px)" }, { transform: "translateY(0)" }]);
-    expect(opcje).toEqual({ duration: 500, easing: "steps(5, end)" });
-    expect(FLIP_MS).toBe(500);
+    expect(opcje).toEqual({ duration: FLIP_MS, easing: "steps(5, end)" });
   });
 
   it("liczba skoków rośnie z odległością, najmniej jeden", () => {

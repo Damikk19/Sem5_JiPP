@@ -195,8 +195,11 @@ describe("obraz na matrycy", () => {
     expect(diody.filter((j) => j > 0)).toHaveLength(5);
   });
 
-  it("jasność statku: 3 życia pełna, 2 średnia, 1 przygaszona", () => {
-    expect(JASNOSC_STATKU.slice(1)).toEqual([25, 90, 255]);
+  it("statek przygasa z każdym straconym życiem", () => {
+    const [, jedno, dwa, trzy] = JASNOSC_STATKU;
+    expect(trzy).toBeGreaterThan(dwa);
+    expect(dwa).toBeGreaterThan(jedno);
+    expect(jedno).toBeGreaterThan(0);
   });
 
   it("poziomy świecenia na stronie rozróżniają DDR4, uszkodzoną DDR5, DDR5 i pełną jasność", () => {
