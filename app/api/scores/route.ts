@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
 import { authError, czytajBody, json, jsonPubliczny, preflight, zaCzesto } from "@/lib/http";
 import { MAX_BODY_BAJTOW, MAX_ZAPISOW_W_OKNIE, ODSTEP_NICKU_S, OKNO_S } from "@/lib/limity";
-import { logError } from "@/lib/log";
+import { logError, logZmiana } from "@/lib/log";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
 
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       return zaCzesto(powod, zapis.ponowZaS);
     }
     // Duplikat (ta sama gra jeszcze raz) dostaje 200 z istniejącym wpisem: bramka wie, że wynik jest zapisany
+    logZmiana(zapis.rodzaj === "nowy" ? "POST /api/scores zapisany" : "POST /api/scores duplikat", zapis.wynik);
     return json(zapis.wynik, zapis.rodzaj === "nowy" ? 201 : 200);
   } catch (e) {
     logError("POST /api/scores", e);

@@ -1,3 +1,5 @@
+import type { Score } from "./score";
+
 // Błąd do logów serwera bez danych wrażliwych. Sterownik bazy potrafi wkleić do komunikatu
 // cały adres połączenia razem z hasłem (np. gdy DATABASE_URL jest źle wpisany).
 export function logError(where: string, e: unknown) {
@@ -17,4 +19,11 @@ function ukryjHasla(tekst: string) {
   return wynik
     .replace(/([a-z][a-z0-9+.-]*:\/\/)\S*@/gi, "$1***@")
     .replace(/((?:password|passwd|pwd)["']?\s*[:=]\s*)("[^"]*"|'[^']*'|[^\s&,;)]+)/gi, "$1***");
+}
+
+// Ślad udanego zapisu albo usunięcia w logach serwera (Vercel → Logs): widać zalew zapisów i to, co zostało
+// usunięte. Jedna linia, bez kluczy i bez adresu IP. Nick jest zapisany jak w JSON (w cudzysłowie), więc
+// spacje czy cudzysłowy w nicku nie mieszają się z resztą linii.
+export function logZmiana(co: string, wynik: Score) {
+  console.info(`${co} id=${wynik.id} nick=${JSON.stringify(wynik.playerId)} wynik=${wynik.score}`);
 }

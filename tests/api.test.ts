@@ -36,6 +36,8 @@ function usun(id: string, headers: Record<string, string> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Ślad zapisów i usunięć (console.info) sprawdzają osobne testy niżej
+  vi.spyOn(console, "info").mockImplementation(() => {});
   vi.unstubAllEnvs();
   vi.stubEnv("API_TOKEN", BRAMKA);
   vi.stubEnv("ADMIN_TOKEN", ADMIN);
@@ -398,6 +400,51 @@ describe("zła konfiguracja kluczy: ogólny błąd 500, szczegół tylko w logu"
     vi.stubEnv("ADMIN_TOKEN", BRAMKA);
     vi.mocked(repo.save).mockResolvedValue(NOWY);
     expect((await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }))).status).toBe(201);
+  });
+});
+
+// Jedna linia w logu przy każdej udanej zmianie danych: widać zalew zapisów i to, co zostało usunięte
+describe("ślad w logach", () => {
+  function zalogowane() {
+    return vi.mocked(console.info).mock.calls.map((wywolanie) => wywolanie.join(" "));
+  }
+
+  it("udany zapis: jedna linia z id, nickiem i wynikiem, bez klucza", async () => {
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
+    await POST(new NextRequest(`${ADRES}?key=${BRAMKA}`, { method: "POST", body: '{"id":"ABC","wynik":123}' }));
+    expect(zalogowane()).toEqual([`POST /api/scores zapisany id=${ID} nick="ABC" wynik=123`]);
+  });
+
+  it("duplikat: linia z istniejącym wpisem", async () => {
+    vi.mocked(repo.save).mockResolvedValue({ rodzaj: "duplikat", wynik: WYNIK });
+    await POST(post('{"id":"ABC","wynik":123}', { authorization: `Bearer ${BRAMKA}` }));
+    expect(zalogowane()).toEqual([`POST /api/scores duplikat id=${ID} nick="ABC" wynik=123`]);
+  });
+
+  it("udane usunięcie: linia z usuniętym wpisem, bez klucza admina", async () => {
+    vi.mocked(repo.remove).mockResolvedValue(WYNIK);
+    await usun(ID, { authorization: `Bearer ${ADMIN}` });
+    expect(zalogowane()).toEqual([`DELETE /api/scores usunięty id=${ID} nick="ABC" wynik=123`]);
+  });
+
+  it("nick ze spacją i cudzysłowem nie miesza się z resztą linii", async () => {
+    vi.mocked(repo.save).mockResolvedValue({ rodzaj: "nowy", wynik: { ...WYNIK, playerId: 'A" wynik=9' } });
+    await POST(post('{"id":"A\\" wynik=9","wynik":123}', { authorization: `Bearer ${BRAMKA}` }));
+    expect(zalogowane()).toEqual([`POST /api/scores zapisany id=${ID} nick="A\\" wynik=9" wynik=123`]);
+  });
+
+  it("odrzucone żądania i nieudane usunięcie nie zostawiają śladu zmiany", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(repo.save).mockResolvedValueOnce({ rodzaj: "limit", powod: "nick", ponowZaS: 2 });
+    await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
+    await POST(post('{"id":"ABC","wynik":1}'));
+    await POST(post('{"id":"","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
+    vi.mocked(repo.save).mockRejectedValueOnce(new Error("timeout"));
+    await POST(post('{"id":"ABC","wynik":1}', { authorization: `Bearer ${BRAMKA}` }));
+    vi.mocked(repo.remove).mockResolvedValueOnce(null);
+    await usun(ID, { authorization: `Bearer ${ADMIN}` });
+    await usun(ID, { authorization: `Bearer ${BRAMKA}` });
+    expect(zalogowane()).toEqual([]);
   });
 });
 
