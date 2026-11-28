@@ -3,6 +3,7 @@
 // Ekran NEW HIGH SCORE na cały ekran: nad starą tabelą, zanim do niej wejdą nowe dane.
 // Portal do body, czyli poza powiększeniem (zoom) trybu TV, ale pod liniami kineskopu.
 // Czytnik ekranu dostaje komunikat z regionu aria-live w tabeli, więc sam ekran jest aria-hidden.
+// Strona pod spodem jest na ten czas nieaktywna (inert): klawiatura i kliknięcia w nią nie trafiają.
 import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { REKORD_MS } from "@/lib/rekord";
@@ -35,6 +36,21 @@ export default function NowyRekord({ nick, wynik, zamknij }: Props) {
       window.removeEventListener("keydown", klawisz);
     };
   }, [zamknij]);
+
+  useEffect(() => {
+    const aktywny = document.activeElement;
+    const poprzedni = aktywny instanceof HTMLElement && aktywny !== document.body ? aktywny : null;
+    const tlo = Array.from(document.body.children).filter(
+      (el): el is HTMLElement => el instanceof HTMLElement && !el.classList.contains("rekord") && !el.inert,
+    );
+    for (const el of tlo) el.inert = true;
+    return () => {
+      for (const el of tlo) el.inert = false;
+      // Fokus, który zniknął razem ze stroną pod spodem (np. z przycisku dźwięku), wraca na swoje miejsce
+      const teraz = document.activeElement;
+      if (poprzedni?.isConnected && (!teraz || teraz === document.body)) poprzedni.focus({ preventScroll: true });
+    };
+  }, []);
 
   if (!zamontowany) return null;
 
