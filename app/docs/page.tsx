@@ -50,6 +50,10 @@ export default function Docs() {
         wpisów w ciągu 60 s (łącznie) dostają <code>429</code> z <code>Retry-After</code>.
       </p>
       <p>
+        Limity liczą się po <code>id</code>, więc gracze grający w tym samym czasie potrzebują różnych nicków. Kilka
+        micro:bitów z domyślnym nickiem <code>AAA</code> to dla API jeden gracz (<code>429</code> albo duplikat).
+      </p>
+      <p>
         Wszystkie adresy <code>/api</code> mają też limit 200 żądań na minutę z jednego adresu IP (reguła Firewalla
         Vercela, ustawiona w panelu, nie w kodzie). Powyżej limitu: <code>429</code>.
       </p>

@@ -52,6 +52,7 @@ Hosting i baza są na darmowych planach (Vercel Hobby, Neon), a po przekroczeniu
 - **Rozmiar body**: najwyżej 1024 bajty (poprawne body ma ok. 25). Większe dostaje `413`: od razu według `Content-Length`, a bez tego nagłówka (np. `Transfer-Encoding: chunked`) po przeczytaniu 1024 bajtów.
 - **Duplikaty**: zapis z tym samym wynikiem co ostatni wpis tego nicku z ostatnich 30 s to ta sama gra (radio może dostarczyć ramkę dwa razy, bramka może ponowić żądanie). API odpowiada `200` z istniejącym wpisem i nie dopisuje drugiego. Gry 0, 10, 0 tego samego nicku to trzy wpisy, bo duplikatem jest tylko powtórka ostatniego.
 - **Ten sam nick**: inny wynik tego samego nicku szybciej niż po 5 s od poprzedniego zapisu dostaje `429`.
+- **Kilku graczy naraz**: limity liczą się po nicku, więc gracze, którzy grają w tym samym czasie, potrzebują różnych nicków. Na kilku micro:bitach z domyślnym nickiem `AAA` gra skończona w ciągu 5 s od cudzej dostanie `429`, a ten sam wynik w ciągu 30 s zostanie uznany za duplikat.
 - **Wszystkie zapisy**: najwyżej 30 nowych wpisów w ciągu ostatnich 60 s. Kolejny dostaje `429`.
 - `429` ma nagłówek `Retry-After` z liczbą sekund, po której zapis przejdzie. Limity sprawdza baza w jednej transakcji z blokadą, więc działają także przy równoległych żądaniach. Wszystkie liczby są w `lib/limity.ts`.
 
