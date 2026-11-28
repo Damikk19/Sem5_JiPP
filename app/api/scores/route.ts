@@ -2,8 +2,8 @@
 // Usuwanie pojedynczego wyniku jest w [id]/route.ts.
 import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
-import { authError, czytajBody, json, jsonPubliczny, preflight } from "@/lib/http";
-import { MAX_BODY_BAJTOW } from "@/lib/limity";
+import { authError, czytajBody, json, jsonPubliczny, preflight, zaCzesto } from "@/lib/http";
+import { MAX_BODY_BAJTOW, MAX_ZAPISOW_W_OKNIE, ODSTEP_NICKU_S, OKNO_S } from "@/lib/limity";
 import { logError } from "@/lib/log";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
@@ -30,8 +30,16 @@ export async function POST(request: NextRequest) {
   if (!parsed.ok) return json({ error: parsed.error }, 400);
 
   try {
-    const score = await save(parsed.dto);
-    return json(score, 201);
+    const zapis = await save(parsed.dto);
+    if (zapis.rodzaj === "limit") {
+      const powod =
+        zapis.powod === "wszystkie"
+          ? `Za dużo zapisów: najwyżej ${MAX_ZAPISOW_W_OKNIE} na ${OKNO_S} s`
+          : `Ten nick zapisał inny wynik przed chwilą: najwyżej jeden zapis na ${ODSTEP_NICKU_S} s`;
+      return zaCzesto(powod, zapis.ponowZaS);
+    }
+    // Duplikat (ta sama gra jeszcze raz) dostaje 200 z istniejącym wpisem: bramka wie, że wynik jest zapisany
+    return json(zapis.wynik, zapis.rodzaj === "nowy" ? 201 : 200);
   } catch (e) {
     logError("POST /api/scores", e);
     return json({ error: "Błąd bazy danych" }, 500);

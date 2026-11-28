@@ -19,6 +19,7 @@ import { GET as RANKING, OPTIONS as OPTIONS_RANKINGU } from "@/app/api/ranking/r
 const ADRES = "https://sem5-jipp.vercel.app/api/scores";
 const ID = "3f2b8c1e-7a4d-4c2b-9e1f-0a6b5c4d3e2f";
 const WYNIK: Score = { id: ID, playerId: "ABC", score: 123, timestamp: "2026-11-23T12:00:00.000Z" };
+const NOWY = { rodzaj: "nowy", wynik: WYNIK } as const;
 
 function post(body: string, headers: Record<string, string> = {}) {
   return new NextRequest(ADRES, { method: "POST", body, headers });
@@ -55,13 +56,13 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
   });
 
   it("przyjmuje klucz w adresie (?key=)", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const req = new NextRequest(`${ADRES}?key=klucz-bramki`, { method: "POST", body: '{"id":"ABC","wynik":1}' });
     expect((await POST(req)).status).toBe(201);
   });
 
   it("z kluczem zapisuje wynik i odpowiada 201", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual(WYNIK);
@@ -69,7 +70,7 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
   });
 
   it("działa bez nagłówka Content-Type, bo bramka może go nie wysłać", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const req = new NextRequest(ADRES, {
       method: "POST",
       body: new TextEncoder().encode('{"id":"ABC","wynik":"123"}'),
@@ -90,6 +91,29 @@ describe("POST /api/scores (zapis wyniku od bramki)", () => {
     expect(res.status).toBe(400);
     expect((await res.json()).error).toContain("wynik");
     expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it("ta sama gra jeszcze raz (duplikat): 200 z istniejącym wpisem", async () => {
+    vi.mocked(repo.save).mockResolvedValue({ rodzaj: "duplikat", wynik: WYNIK });
+    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(WYNIK);
+  });
+
+  it.each([
+    ["nick", 3, "5 s"],
+    ["wszystkie", 42, "30 na 60 s"],
+  ] as const)("limit zapisów (%s): 429 z Retry-After", async (powod, ponowZaS, opis) => {
+    vi.mocked(repo.save).mockResolvedValue({ rodzaj: "limit", powod, ponowZaS });
+    const res = await POST(post('{"id":"ABC","wynik":123}', { authorization: "Bearer klucz-bramki" }));
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe(String(ponowZaS));
+    // Skrypt w przeglądarce (test z innej strony) może przeczytać Retry-After tylko z tym nagłówkiem
+    expect(res.headers.get("access-control-expose-headers")).toBe("Retry-After");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    const { error } = await res.json();
+    expect(error).toContain(opis);
+    expect(error).toContain(`${ponowZaS} s`);
   });
 
   it("błąd bazy: 500 bez szczegółów technicznych w odpowiedzi", async () => {
@@ -137,7 +161,7 @@ describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
   });
 
   it("Content-Length równy limitowi przepuszcza", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const req = new NextRequest(ADRES, { method: "POST", body: bodyBajtow(1024), headers: { ...KLUCZ, "content-length": "1024" } });
     expect((await POST(req)).status).toBe(201);
   });
@@ -148,7 +172,7 @@ describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
   });
 
   it("strumień bez Content-Length: 1024 B przechodzi, 1025 B daje 413", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const dokladnie = bodyBajtow(1024);
     expect((await POST(postKawalki([dokladnie.slice(0, 600), dokladnie.slice(600)]))).status).toBe(201);
     const zaDuzo = bodyBajtow(1025);
@@ -178,7 +202,7 @@ describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
   });
 
   it("znak rozcięty między kawałkami strumienia nie psuje nicku", async () => {
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     const body = new TextEncoder().encode('{"id":"ŁĄC","wynik":1}');
     // Bajt 8 to środek litery Ł (2 bajty w UTF-8)
     expect((await POST(postKawalki([body.slice(0, 8), body.slice(8)]))).status).toBe(201);
@@ -306,18 +330,26 @@ describe("cache CDN tylko dla udanych publicznych GET", () => {
 
   it("zapis, odrzucony zapis i usuwanie nie mają cache", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.mocked(repo.save).mockResolvedValue(WYNIK);
+    vi.mocked(repo.save).mockResolvedValue(NOWY);
     vi.mocked(repo.remove).mockResolvedValue(WYNIK);
     const odpowiedzi = [
       await POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" })),
       await POST(post('{"id":"ABC","wynik":1}')),
+      await (async () => {
+        vi.mocked(repo.save).mockResolvedValueOnce({ rodzaj: "duplikat", wynik: WYNIK });
+        return POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" }));
+      })(),
+      await (async () => {
+        vi.mocked(repo.save).mockResolvedValueOnce({ rodzaj: "limit", powod: "nick", ponowZaS: 2 });
+        return POST(post('{"id":"ABC","wynik":1}', { authorization: "Bearer klucz-bramki" }));
+      })(),
       await POST(post("{zepsuty", { authorization: "Bearer klucz-bramki" })),
       await usun(ID, { authorization: "Bearer klucz-admina" }),
       await usun("abc", { authorization: "Bearer klucz-admina" }),
       OPTIONS(),
       OPTIONS_RANKINGU(),
     ];
-    expect(odpowiedzi.map((r) => r.status)).toEqual([201, 401, 400, 200, 400, 204, 204]);
+    expect(odpowiedzi.map((r) => r.status)).toEqual([201, 401, 200, 429, 400, 200, 400, 204, 204]);
     for (const res of odpowiedzi) expect(res.headers.get(CDN)).toBeNull();
   });
 });

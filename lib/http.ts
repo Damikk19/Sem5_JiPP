@@ -46,6 +46,15 @@ export async function czytajBody(request: Request, limit: number): Promise<strin
   return tekst + dekoder.decode();
 }
 
+// 429: limit zapisów. Retry-After mówi, po ilu sekundach zapis przejdzie; przeglądarka może go przeczytać
+// dzięki Access-Control-Expose-Headers (bez tego CORS ukrywa ten nagłówek przed skryptem).
+export function zaCzesto(komunikat: string, ponowZaS: number) {
+  return Response.json(
+    { error: `${komunikat}. Spróbuj za ${ponowZaS} s` },
+    { status: 429, headers: { ...CORS, "Retry-After": String(ponowZaS), "Access-Control-Expose-Headers": "Retry-After" } },
+  );
+}
+
 // Odpowiedź, gdy klucz się nie zgadza albo serwer nie ma go skonfigurowanego
 export function authError(result: Exclude<AuthResult, "ok">, which: string) {
   if (result === "not-configured") {
