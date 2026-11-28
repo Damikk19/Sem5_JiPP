@@ -226,7 +226,13 @@ export default function Leaderboard() {
       </div>
 
       {widok.rekord && (
-        <NowyRekord nick={widok.rekord.playerId} wynik={punkty(widok.rekord.score)} zamknij={zamknijRekord} />
+        // Klucz: wyższy rekord w trakcie to nowy ekran z własnymi 5 s
+        <NowyRekord
+          key={widok.rekord.id}
+          nick={widok.rekord.playerId}
+          wynik={punkty(widok.rekord.score)}
+          zamknij={zamknijRekord}
+        />
       )}
     </section>
   );

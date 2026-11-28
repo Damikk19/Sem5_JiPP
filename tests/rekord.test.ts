@@ -133,13 +133,14 @@ describe("co widać na stronie po nowych danych", () => {
     expect(dzwiek).toBe("rekord");
   });
 
-  it("dwie nowe gry naraz, jedna z rekordem: jeden dźwięk i jest nim fanfara", () => {
+  it("dwie nowe gry naraz, jedna z rekordem: jeden dźwięk i jest nim fanfara (także po zamknięciu)", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 20, 5);
     const { widok, dzwiek } = przyjmij(poStarcie(), ranking(A, B, C, D, E), ["E", "D"]);
     expect(widok.rekord).toEqual(D);
     expect(widok.czeka?.nowe).toEqual(["E", "D"]);
     expect(dzwiek).toBe("rekord");
+    expect(zamknij(widok).dzwiek).toBeNull();
   });
 
   it("dwie nowe gry naraz bez rekordu: obie migają, jeden dźwięk", () => {
@@ -184,13 +185,34 @@ describe("co widać na stronie po nowych danych", () => {
     expect(przyjmij(poStarcie(), ranking(B, C, E), ["E"]).widok.rekord).toEqual(E);
   });
 
-  it("drugi rekord w trakcie ekranu rekordu nie otwiera drugiego ekranu", () => {
+  it("wyższy rekord w trakcie ekranu rekordu podmienia ekran i gra fanfarę", () => {
     const D = gra("D", 500, 4);
     const E = gra("E", 900, 5);
     const poRekordzie = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
     const { widok, dzwiek } = przyjmij(poRekordzie, ranking(A, B, C, D, E), ["E"]);
+    expect(widok.rekord).toEqual(E);
+    expect(widok.tabela).toBe(poRekordzie.tabela);
+    expect(widok.czeka?.nowe).toEqual(["D", "E"]);
+    expect(widok.czeka?.rekord).toEqual(E);
+    expect(dzwiek).toBe("rekord");
+    // po zamknięciu migają oba rekordy, a każdy już miał fanfarę
+    const poZamknieciu = zamknij(widok);
+    expect(poZamknieciu.widok.tabela?.dane.top.map((g) => g.id)).toEqual(["E", "D", "A", "B", "C"]);
+    expect(poZamknieciu.widok.tabela?.nowe).toEqual(["D", "E"]);
+    expect(poZamknieciu.widok.tabela?.rekord).toEqual(E);
+    expect(poZamknieciu.dzwiek).toBeNull();
+  });
+
+  it("gra równa rekordowi na ekranie nie podmienia go, tylko czeka", () => {
+    const D = gra("D", 500, 4);
+    const E = gra("E", 500, 5);
+    const poRekordzie = przyjmij(poStarcie(), ranking(A, B, C, D), ["D"]).widok;
+    const { widok, dzwiek } = przyjmij(poRekordzie, ranking(A, B, C, D, E), ["E"]);
     expect(widok.rekord).toEqual(D);
+    expect(widok.czeka?.nowe).toEqual(["D", "E"]);
     expect(dzwiek).toBeNull();
+    // E nie miała jeszcze dźwięku, więc po zamknięciu są dwa bipy
+    expect(zamknij(widok).dzwiek).toBe("nowa-gra");
   });
 });
 

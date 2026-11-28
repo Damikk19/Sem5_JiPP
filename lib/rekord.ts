@@ -26,23 +26,35 @@ export type Widok = {
   rekord: Score | null;
   // dane, które czekają na zamknięcie ekranu rekordu
   czeka: Paczka | null;
+  // gry, które już mają swój dźwięk: fanfara rekordu gra za całą paczkę, w której przyszedł
+  zagrane: string[];
 };
 
 // Jeden dźwięk na raz: kilka nowych gier naraz to jeden dźwięk, a rekord ma pierwszeństwo
 export type Dzwiek = "nowa-gra" | "rekord" | null;
 
-export const POCZATEK: Widok = { tabela: null, rekord: null, czeka: null };
+export const POCZATEK: Widok = { tabela: null, rekord: null, czeka: null, zagrane: [] };
+
+const suma = (a: string[], b: string[]) => [...new Set([...a, ...b])];
 
 // Nowe dane z odpytywania
 export function przyjmij(w: Widok, dane: Ranking, nowe: string[]): { widok: Widok; dzwiek: Dzwiek } {
   if (w.rekord) {
     // Ekran rekordu jest otwarty: czekają najnowsze dane, a nowe gry z kolejnych pytań się sumują
-    const wszystkie = [...new Set([...(w.czeka?.nowe ?? []), ...nowe])];
+    const wszystkie = suma(w.czeka?.nowe ?? [], nowe);
+    // Wyższy rekord w trakcie podmienia ekran (od nowa 5 s, fanfara, komunikat). Niższa i równa gra czeka.
+    const wyzszy = nowyRekord(dane.top, nowe, w.rekord.score);
+    if (wyzszy) {
+      return {
+        widok: { tabela: w.tabela, rekord: wyzszy, czeka: { dane, nowe: wszystkie, rekord: wyzszy }, zagrane: suma(w.zagrane, nowe) },
+        dzwiek: "rekord",
+      };
+    }
     return { widok: { ...w, czeka: { dane, nowe: wszystkie, rekord: w.rekord } }, dzwiek: null };
   }
   const rekord = nowyRekord(dane.top, nowe, w.tabela?.dane.top[0]?.score ?? 0);
   if (rekord) {
-    return { widok: { tabela: w.tabela, rekord, czeka: { dane, nowe, rekord } }, dzwiek: "rekord" };
+    return { widok: { tabela: w.tabela, rekord, czeka: { dane, nowe, rekord }, zagrane: nowe }, dzwiek: "rekord" };
   }
   // Po zamknięciu ekranu rekordu kolejne pytanie przychodzi zwykle zaraz (oba czasy liczą się od tej samej
   // odpowiedzi): bez nowych gier wyróżnienie i komunikat zostają, żeby rekord mignął w całości
@@ -50,16 +62,20 @@ export function przyjmij(w: Widok, dane: Ranking, nowe: string[]): { widok: Wido
     return { widok: { ...w, tabela: { ...w.tabela, dane } }, dzwiek: null };
   }
   return {
-    widok: { tabela: { dane, nowe, rekord: null }, rekord: null, czeka: null },
+    widok: { tabela: { dane, nowe, rekord: null }, rekord: null, czeka: null, zagrane: [] },
     dzwiek: nowe.length > 0 ? "nowa-gra" : null,
   };
 }
 
 // Zamknięcie ekranu rekordu (czas, klik albo Escape): do tabeli wchodzą dane, które czekały.
-// Rekord już zagrał fanfarę, więc dźwięk jest tylko wtedy, gdy w międzyczasie przyszły inne gry.
+// Rekord już zagrał fanfarę (za całą swoją paczkę), więc dźwięk jest tylko wtedy, gdy w międzyczasie
+// przyszły inne gry.
 export function zamknij(w: Widok): { widok: Widok; dzwiek: Dzwiek } {
   const { rekord, czeka } = w;
   if (!rekord || !czeka) return { widok: w, dzwiek: null };
-  const inne = czeka.nowe.some((id) => id !== rekord.id);
-  return { widok: { tabela: { ...czeka, trzyma: true }, rekord: null, czeka: null }, dzwiek: inne ? "nowa-gra" : null };
+  const bezDzwieku = czeka.nowe.some((id) => !w.zagrane.includes(id));
+  return {
+    widok: { tabela: { ...czeka, trzyma: true }, rekord: null, czeka: null, zagrane: [] },
+    dzwiek: bezDzwieku ? "nowa-gra" : null,
+  };
 }
