@@ -175,6 +175,14 @@ describe("klucz w konfiguracji musi mieć co najmniej 32 znaki", () => {
     expect(checkApiKey(zapytanie({ authorization: `Bearer ${"k".repeat(32)}` }))).toBe("ok");
   });
 
+  it("liczy znaki, nie jednostki UTF-16: 16 emoji to za mało, 32 emoji wystarczy", () => {
+    // Nagłówek HTTP nie uniesie emoji, więc klucz idzie w adresie (?key=)
+    vi.stubEnv("API_TOKEN", "🔑".repeat(16));
+    expect(checkApiKey(zapytanie({}, `?key=${encodeURIComponent("🔑".repeat(16))}`))).toBe("not-configured");
+    vi.stubEnv("API_TOKEN", "🔑".repeat(32));
+    expect(checkApiKey(zapytanie({}, `?key=${encodeURIComponent("🔑".repeat(32))}`))).toBe("ok");
+  });
+
   it("liczy długość po przycięciu: 31 znaków z enterem na końcu to dalej za mało", () => {
     vi.stubEnv("API_TOKEN", `${"k".repeat(31)}\n`);
     expect(checkApiKey(zapytanie({ authorization: `Bearer ${"k".repeat(31)}` }))).toBe("not-configured");

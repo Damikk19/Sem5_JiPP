@@ -48,7 +48,8 @@ function configured(klucz: Klucz): { klucz: string } | { problem: string } {
   const nazwa = klucz === "API" ? "API_TOKEN" : "ADMIN_TOKEN";
   const wartosc = process.env[nazwa]?.trim();
   if (!wartosc) return { problem: `brak zmiennej ${nazwa}` };
-  if (wartosc.length < MIN_DLUGOSC_KLUCZA) return { problem: `${nazwa} ma mniej niż ${MIN_DLUGOSC_KLUCZA} znaki` };
+  // Długość w znakach, nie w jednostkach UTF-16: 16 emoji to 16 znaków, a nie 32
+  if ([...wartosc].length < MIN_DLUGOSC_KLUCZA) return { problem: `${nazwa} ma mniej niż ${MIN_DLUGOSC_KLUCZA} znaki` };
   // Ten sam klucz w obu zmiennych dałby bramce prawo usuwania. Porównujemy dwie wartości z konfiguracji,
   // nie dane od klienta, więc zwykłe porównanie niczego nie zdradza czasem odpowiedzi.
   if (klucz === "admina" && wartosc === process.env.API_TOKEN?.trim()) {
