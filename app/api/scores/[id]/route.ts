@@ -3,7 +3,7 @@
 import type { NextRequest } from "next/server";
 import { checkAdminKey } from "@/lib/auth";
 import { authError, json, preflight } from "@/lib/http";
-import { logError } from "@/lib/log";
+import { logError, logZmiana } from "@/lib/log";
 import { remove } from "@/lib/scoreRepository";
 
 export const maxDuration = 10;
@@ -20,6 +20,7 @@ export async function DELETE(request: NextRequest, ctx: RouteContext<"/api/score
   try {
     const deleted = await remove(id);
     if (!deleted) return json({ error: "Nie ma wyniku o takim id" }, 404);
+    logZmiana("DELETE /api/scores usunięty", deleted);
     return json(deleted);
   } catch (e) {
     logError("DELETE /api/scores/[id]", e);

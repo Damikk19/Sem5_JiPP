@@ -7,6 +7,12 @@ import { createHash, timingSafeEqual } from "node:crypto";
 // nigdy w kodzie ani w repozytorium.
 
 export type AuthResult = "ok" | "missing" | "invalid" | "not-configured";
+export type Klucz = "API" | "admina";
+
+// Krótszy klucz w konfiguracji traktujemy jak brak klucza: przykład z README albo z testów, wpisany na
+// serwerze przez pomyłkę, nie może stać się prawdziwym kluczem, a krótki klucz dałoby się zgadywać.
+// Prawdziwe klucze to losowe ciągi, np. z `openssl rand -hex 24` (48 znaków).
+const MIN_DLUGOSC_KLUCZA = 32;
 
 // Wszystkie miejsca, w których klient mógł podać klucz. Sprawdzamy każde, bo bramka może
 // np. doklejać własny nagłówek Authorization, a nasz klucz wysyłać w X-API-Key albo w adresie.
@@ -36,11 +42,33 @@ function sameKey(given: string, expected: string) {
   return timingSafeEqual(a, b);
 }
 
-function check(request: Request, configured: string | undefined, allowQuery: boolean): AuthResult {
-  // Klucz z konfiguracji też przycinamy: wklejony na Vercelu z enterem na końcu nie może blokować bramki
-  const expected = configured?.trim();
-  // Bez skonfigurowanego klucza operacja jest zablokowana (lepiej odrzucić niż wpuścić wszystkich)
-  if (!expected) return "not-configured";
+// Klucz z konfiguracji albo opis, dlaczego nie można go używać. Opis trafia tylko do logu serwera.
+// Klucz z konfiguracji też przycinamy: wklejony na Vercelu z enterem na końcu nie może blokować bramki.
+function configured(klucz: Klucz): { klucz: string } | { problem: string } {
+  const nazwa = klucz === "API" ? "API_TOKEN" : "ADMIN_TOKEN";
+  const wartosc = process.env[nazwa]?.trim();
+  if (!wartosc) return { problem: `brak zmiennej ${nazwa}` };
+  // Długość w znakach, nie w jednostkach UTF-16: 16 emoji to 16 znaków, a nie 32
+  if ([...wartosc].length < MIN_DLUGOSC_KLUCZA) return { problem: `${nazwa} ma mniej niż ${MIN_DLUGOSC_KLUCZA} znaki` };
+  // Ten sam klucz w obu zmiennych dałby bramce prawo usuwania. Porównujemy dwie wartości z konfiguracji,
+  // nie dane od klienta, więc zwykłe porównanie niczego nie zdradza czasem odpowiedzi.
+  if (klucz === "admina" && wartosc === process.env.API_TOKEN?.trim()) {
+    return { problem: "ADMIN_TOKEN jest taki sam jak API_TOKEN" };
+  }
+  return { klucz: wartosc };
+}
+
+// Dlaczego klucz nie działa (null, gdy jest w porządku). Do logu, gdy operacja jest zablokowana.
+export function problemZKluczem(klucz: Klucz): string | null {
+  const wynik = configured(klucz);
+  return "problem" in wynik ? wynik.problem : null;
+}
+
+function check(request: Request, klucz: Klucz, allowQuery: boolean): AuthResult {
+  // Bez poprawnego klucza w konfiguracji operacja jest zablokowana (lepiej odrzucić niż wpuścić wszystkich)
+  const konfiguracja = configured(klucz);
+  if ("problem" in konfiguracja) return "not-configured";
+  const expected = konfiguracja.klucz;
   const given = candidates(request, allowQuery);
   if (given.length === 0) return "missing";
   // Sprawdzamy każdego kandydata do końca, bez przerywania, żeby czas nie zależał od tego, który pasuje
@@ -50,10 +78,10 @@ function check(request: Request, configured: string | undefined, allowQuery: boo
 }
 
 export function checkApiKey(request: Request): AuthResult {
-  return check(request, process.env.API_TOKEN, true);
+  return check(request, "API", true);
 }
 
 // Klucz admina tylko w nagłówku: adres z ?key= może zostać w logach albo historii przeglądarki
 export function checkAdminKey(request: Request): AuthResult {
-  return check(request, process.env.ADMIN_TOKEN, false);
+  return check(request, "admina", false);
 }

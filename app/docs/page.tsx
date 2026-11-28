@@ -23,7 +23,7 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p>
-        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem (emoji, także złożone, są w porządku). <code>wynik</code>: liczba całkowita 0–99999 (może
+        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem i bez niewidocznych znaków, np. spacji zerowej szerokości (emoji, także złożone, są w porządku). API zapisuje nick w jednej postaci (NFC, jedna zwykła spacja zamiast każdej grupy spacji). <code>wynik</code>: liczba całkowita 0–99999 (może
         przyjść jako tekst z samych cyfr, np. <code>&quot;50&quot;</code>).
       </p>
       <p>
@@ -32,8 +32,30 @@ export default function Docs() {
         każde z tych miejsc.
       </p>
       <p>
-        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>400</code> z opisem błędu danych,{" "}
-        <code>401</code> bez poprawnego klucza albo <code>500</code> przy błędzie serwera.
+        Odpowiedź <code>201</code> z zapisanym wynikiem, <code>200</code> z istniejącym wpisem, gdy ta sama gra
+        przyszła drugi raz (duplikat), <code>400</code> z opisem błędu danych, <code>401</code> bez poprawnego
+        klucza, <code>413</code> przy body większym niż 1024 bajty, <code>429</code> przy za częstych zapisach
+        (nagłówek <code>Retry-After</code> podaje, po ilu sekundach spróbować) albo <code>500</code> przy błędzie
+        serwera.
+      </p>
+
+      <h2 className="sekcja">Limity zapisów</h2>
+      <p>
+        Body najwyżej 1024 bajty (<code>413</code>). Zapis z tym samym <code>wynik</code> co ostatni wpis tego
+        samego <code>id</code> z ostatnich 30 s to ta sama gra: <code>200</code> z istniejącym wpisem, bez drugiego
+        wpisu, więc ponowienie żądania jest bezpieczne.
+      </p>
+      <p>
+        Inny wynik tego samego <code>id</code> przed upływem 5 s od poprzedniego zapisu oraz więcej niż 30 nowych
+        wpisów w ciągu 60 s (łącznie) dostają <code>429</code> z <code>Retry-After</code>.
+      </p>
+      <p>
+        Limity liczą się po <code>id</code>, więc gracze grający w tym samym czasie potrzebują różnych nicków. Kilka
+        micro:bitów z domyślnym nickiem <code>AAA</code> to dla API jeden gracz (<code>429</code> albo duplikat).
+      </p>
+      <p>
+        Wszystkie adresy <code>/api</code> mają też limit 200 żądań na minutę z jednego adresu IP (reguła Firewalla
+        Vercela, ustawiona w panelu, nie w kodzie). Powyżej limitu: <code>429</code>.
       </p>
 
       <h2 className="sekcja">GET /api/scores?limit=10</h2>
@@ -44,11 +66,15 @@ export default function Docs() {
       <p>
         <code>?sort=latest</code> zwraca ostatnie gry, od najnowszej.
       </p>
+      <p>
+        Odpowiedzi GET są przez kilka sekund w cache CDN, więc ranking jest opóźniony do ok. 10 s: przez kilka
+        sekund po zapisie (do ok. 10 s) GET może pokazywać stan sprzed zapisu.
+      </p>
 
       <h2 className="sekcja">GET /api/ranking</h2>
       <p>
         Dane dla strony z rankingiem w jednym żądaniu: <code>{`{ top, latest }`}</code>, czyli TOP 10 i 10
-        ostatnich gier. Bez klucza. <code>500</code> przy błędzie serwera.
+        ostatnich gier. Bez klucza, z tym samym cache CDN co wyżej. <code>500</code> przy błędzie serwera.
       </p>
 
       <h2 className="sekcja">DELETE /api/scores/&lt;id&gt;</h2>

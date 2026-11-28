@@ -2,8 +2,9 @@
 // Usuwanie pojedynczego wyniku jest w [id]/route.ts.
 import type { NextRequest } from "next/server";
 import { checkApiKey } from "@/lib/auth";
-import { authError, json, preflight } from "@/lib/http";
-import { logError } from "@/lib/log";
+import { authError, czytajBody, json, jsonPubliczny, preflight, zaCzesto } from "@/lib/http";
+import { MAX_BODY_BAJTOW, MAX_ZAPISOW_W_OKNIE, ODSTEP_NICKU_S, OKNO_S } from "@/lib/limity";
+import { logError, logZmiana } from "@/lib/log";
 import { parse } from "@/lib/scoreValidator";
 import { getLatest, getTop, save } from "@/lib/scoreRepository";
 
@@ -14,10 +15,13 @@ export async function POST(request: NextRequest) {
   const auth = checkApiKey(request);
   if (auth !== "ok") return authError(auth, "API");
 
-  // Czytamy tekst zamiast request.json(), bo bramka może nie ustawić Content-Type.
+  // Czytamy tekst zamiast request.json(), bo bramka może nie ustawić Content-Type. Klucz jest sprawdzony
+  // wcześniej, więc bez niego body nie jest czytane wcale.
   let body: unknown;
   try {
-    body = JSON.parse(await request.text());
+    const tekst = await czytajBody(request, MAX_BODY_BAJTOW);
+    if (tekst === null) return json({ error: `Body za duże (maks. ${MAX_BODY_BAJTOW} B)` }, 413);
+    body = JSON.parse(tekst);
   } catch {
     return json({ error: "Niepoprawny JSON" }, 400);
   }
@@ -26,8 +30,17 @@ export async function POST(request: NextRequest) {
   if (!parsed.ok) return json({ error: parsed.error }, 400);
 
   try {
-    const score = await save(parsed.dto);
-    return json(score, 201);
+    const zapis = await save(parsed.dto);
+    if (zapis.rodzaj === "limit") {
+      const powod =
+        zapis.powod === "wszystkie"
+          ? `Za dużo zapisów: najwyżej ${MAX_ZAPISOW_W_OKNIE} na ${OKNO_S} s`
+          : `Ten nick zapisał inny wynik przed chwilą: najwyżej jeden zapis na ${ODSTEP_NICKU_S} s`;
+      return zaCzesto(powod, zapis.ponowZaS);
+    }
+    // Duplikat (ta sama gra jeszcze raz) dostaje 200 z istniejącym wpisem: bramka wie, że wynik jest zapisany
+    logZmiana(zapis.rodzaj === "nowy" ? "POST /api/scores zapisany" : "POST /api/scores duplikat", zapis.wynik);
+    return json(zapis.wynik, zapis.rodzaj === "nowy" ? 201 : 200);
   } catch (e) {
     logError("POST /api/scores", e);
     return json({ error: "Błąd bazy danych" }, 500);
@@ -43,7 +56,7 @@ export async function GET(request: NextRequest) {
   const latest = request.nextUrl.searchParams.get("sort") === "latest";
 
   try {
-    return json(latest ? await getLatest(limit) : await getTop(limit));
+    return jsonPubliczny(latest ? await getLatest(limit) : await getTop(limit));
   } catch (e) {
     logError("GET /api/scores", e);
     return json({ error: "Błąd bazy danych" }, 500);

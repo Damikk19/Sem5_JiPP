@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parse } from "@/lib/scoreValidator";
 
 // Format od bramki prowadzącego to umowa: { "id": "<gracz>", "wynik": <liczba> }.
@@ -61,6 +61,21 @@ describe("walidacja wyniku od bramki", () => {
     expect(parse({ id: "👾".repeat(33), wynik: 1 }).ok).toBe(false);
   });
 
+  it("bardzo długie id odrzuca od razu, bez rozbijania tekstu na znaki", () => {
+    const rozbijanie = vi.spyOn(String.prototype, Symbol.iterator);
+    try {
+      // Krótkie id jest liczone po znakach (to pokazuje, że podsłuch działa)
+      expect(parse({ id: "ABC", wynik: 1 }).ok).toBe(true);
+      expect(rozbijanie).toHaveBeenCalled();
+      rozbijanie.mockClear();
+      const wynik = parse({ id: "x".repeat(100_000), wynik: 1 });
+      expect(wynik).toEqual({ ok: false, error: '"id" musi mieć od 1 do 32 znaków' });
+      expect(rozbijanie).not.toHaveBeenCalled();
+    } finally {
+      rozbijanie.mockRestore();
+    }
+  });
+
   it.each([
     "ŻÓŁW", "A B", "gracz-1", "Ünal", "👾", "👍🏽", "🇵🇱", "❤️",
     "🧑\u200d💻", "👩🏽\u200d💻", "🏳️\u200d🌈", "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
@@ -103,6 +118,89 @@ describe("walidacja wyniku od bramki", () => {
   ])("odrzuca id, które w rankingu byłoby puste: %s", (_, id) => {
     const result = parse({ id, wynik: 1 });
     expect(result).toEqual({ ok: false, error: '"id" musi zawierać co najmniej jeden widoczny znak' });
+  });
+
+  // Warianty, które wyglądają jak inny nick (np. "ABC"), a dla bazy byłyby nowym nickiem: omijałyby limit
+  // nicku i duplikaty, a w rankingu dawały kilka "takich samych" graczy
+  it.each([
+    ["spacja zerowej szerokości na końcu", "ABC\u200b"],
+    ["spacja zerowej szerokości w środku", "A\u200bBC"],
+    ["łącznik wyrazów (WORD JOINER)", "ABC\u2060"],
+    ["BOM w środku", "AB\ufeffC"],
+    ["wypełniacz Hangul na końcu", "ABC\u3164"],
+    ["wypełniacze Hangul w środku", "A\u115fB\u1160C\uffa0"],
+    ["pusty znak Braille'a w środku", "AB\u2800C"],
+    ["miękki dywiz", "A\u00adBC"],
+    ["mongolski separator samogłosek", "ABC\u180e"],
+    ["rozłącznik zerowej szerokości (ZWNJ)", "AB\u200cC"],
+    ["niewidoczne operatory matematyczne", "A\u2061B\u2062C\u2063\u2064"],
+    ["łącznik grafemów (CGJ)", "ABC\u034f"],
+    ["ZWJ po literze", "ABC\u200d"],
+    ["ZWJ między literami", "A\u200dBC"],
+    ["ZWJ przed emoji, ale po literze", "A\u200d👾"],
+    ["ZWJ na końcu po emoji", "👾\u200d"],
+    ["selektor wariantu po literze (VS16)", "ABC\ufe0f"],
+    ["selektor wariantu po selektorze", "❤\ufe0f\ufe0f"],
+    ["znak tagu poza flagą", "ABC\u{E0041}"],
+    ["flaga z tagami bez znaku końca", "🏴\u{E0067}\u{E0062}\u{E0065}"],
+    // Selektor wariantu tylko tam, gdzie coś zmienia (VS15/VS16 po emoji, VS16 w keycapie, CJK po znaku CJK)
+    ["VS16 po cyfrze bez keycapa", "ABC1\ufe0f"],
+    ["VS16 po # bez keycapa", "ABC#\ufe0f"],
+    ["VS16 po * bez keycapa", "AB*\ufe0f"],
+    ["VS15 w keycapie", "1\ufe0e\u20e3"],
+    ["selektor CJK po emoji (VS2)", "👾\ufe01"],
+    ["selektor IVS po emoji", "👾\u{E0100}"],
+    ["selektor IVS po literze", "ABC\u{E0100}"],
+    ["mongolski selektor po cyfrze", "1\u180b"],
+    ["mongolski selektor po znaku CJK", "葛\u180b"],
+    ["dwa selektory po znaku CJK", "葛\u{E0100}\u{E0101}"],
+    // Znaki tagów tylko w trzech flagach ze standardu emoji (Anglia, Szkocja, Walia)
+    ["flaga Teksasu (tagi spoza standardu)", "🏴\u{E0075}\u{E0073}\u{E0074}\u{E0078}\u{E007F}"],
+    ["flaga Anglii bez ostatniej litery", "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E007F}"],
+    ["flaga Szkocji z dodatkową literą", "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E0074}\u{E007F}"],
+    ["flaga Walii pisana wielkimi tagami", "🏴\u{E0047}\u{E0042}\u{E0057}\u{E004C}\u{E0053}\u{E007F}"],
+    // Pozostałe znaki formatujące (\p{Cf})
+    ["znak adnotacji U+FFF9", "AB\ufff9C"],
+    ["arabski znak liczby U+0600", "\u0600ABC"],
+    ["egipski znak formatujący U+13430", "A\u{13430}BC"],
+    ["znak liczby Kaithi U+110BD", "ABC\u{110BD}"],
+  ])("odrzuca nick z niewidocznym znakiem: %s", (_, id) => {
+    expect(parse({ id, wynik: 1 })).toEqual({
+      ok: false,
+      error: '"id" nie może zawierać niewidocznych znaków (np. spacji zerowej szerokości)',
+    });
+  });
+
+  // Ten sam napis zapisany inaczej daje ten sam nick, więc limit nicku i duplikaty działają na niego tak samo
+  it.each([
+    ["ë jako e + dwie kropki (NFD)", "Zoe\u0308", "Zo\u00eb"],
+    ["polskie litery zostają bez zmian", "ŁOŚ", "ŁOŚ"],
+    ["twarda spacja w środku", "A\u00a0BC", "A BC"],
+    ["spacja ideograficzna w środku", "A\u3000BC", "A BC"],
+    ["wąska twarda spacja i cienka spacja", "A\u202fB\u2009C", "A B C"],
+    ["twarda spacja na początku", "\u00a0ABC", "ABC"],
+    ["spacja zwykła na końcu", "ABC ", "ABC"],
+    ["dwie zwykłe spacje w środku", "A  BC", "A BC"],
+    ["spacja, twarda spacja i spacja", "A \u00a0 BC", "A BC"],
+    ["dwie spacje ideograficzne", "A\u3000\u3000BC", "A BC"],
+    ["kilka grup spacji", "A   B  C", "A B C"],
+  ])("zapisuje nick w jednej postaci: %s", (_, id, zapisany) => {
+    const wynik = parse({ id, wynik: 1 });
+    expect(wynik).toEqual({ ok: true, dto: { playerId: zapisany, score: 1 } });
+  });
+
+  // Kontrakt z bramką: emoji złożone (ZWJ, odcienie skóry, flagi z tagami, keycapy) dalej przechodzą
+  it.each([
+    "Zażółć gęślą", "A B", "AB CD",
+    "👨\u200d👩\u200d👧\u200d👦", "❤\ufe0f\u200d🔥", "🧑\u200d🦰", "🏃🏻\u200d♀\ufe0f", "🐻\u200d❄\ufe0f",
+    "🏴\u200d☠\ufe0f", "👁\ufe0f\u200d🗨\ufe0f", "🫱🏻\u200d🫲🏼",
+    "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "🏴\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
+    "1\ufe0f\u20e3", "#\ufe0f\u20e3", "*\ufe0f\u20e3", "ABC 7\ufe0f\u20e3", "☺\ufe0e", "™\ufe0f", "©\ufe0f",
+    "❤\ufe0f", "👾\ufe0e", "ABC 👾", "GRACZ🏳\ufe0f\u200d🌈", "葛\u{E0100}", "辻\ufe00",
+    "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "🏴", "A B C",
+  ])("dalej przyjmuje nick: %j", (id) => {
+    const wynik = parse({ id, wynik: 1 });
+    expect(wynik).toEqual({ ok: true, dto: { playerId: id.normalize("NFC"), score: 1 } });
   });
 
   it.each([undefined, "", "   ", null, { a: 1 }])("odrzuca brakujące albo puste id: %s", (id) => {
