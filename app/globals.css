@@ -293,9 +293,10 @@ body::after {
 
 /* ---------- Ekran pokazowy w miejscu tabeli (tylko duży ekran) ---------- */
 
+/* Trochę szerzej niż tabela, żeby zasłonić też poświatę jej napisów */
 .demo {
   position: absolute;
-  inset: 0;
+  inset: -16px;
   display: flex;
   flex-direction: column;
   align-items: center;
