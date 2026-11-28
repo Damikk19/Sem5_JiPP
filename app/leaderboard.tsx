@@ -7,9 +7,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { przesuniecia, ruch, skala } from "@/lib/flip";
 import { odpytuj } from "@/lib/odswiezanie";
-import { POCZATEK, przyjmij, zamknij, type Widok } from "@/lib/rekord";
+import { POCZATEK, przyjmij, zamknij, type Dzwiek, type Widok } from "@/lib/rekord";
 import { MAX_SCORE, type Score } from "@/lib/score";
 import NowyRekord from "./nowy-rekord";
+import { useDzwiek } from "./przegladarka";
 
 const TOP = 10;
 const CYFRY = String(MAX_SCORE).length;
@@ -52,16 +53,22 @@ export default function Leaderboard() {
   // Pozycje wierszy tuż przed zmianą danych w tabeli (FLIP), null = bez przesuwania
   const przed = useRef<Map<string, number> | null>(null);
 
+  const { wlaczony, przelacz, graj } = useDzwiek();
 
-  const pokazWidok = useCallback((w: Widok, przesun: boolean) => {
-    // Pozycje „przed” trzeba zmierzyć, zanim React podmieni wiersze
-    if (w.tabela !== widokRef.current.tabela) przed.current = przesun ? pozycje(tbody.current).mapa : null;
-    widokRef.current = w;
-    setWidok(w);
-  }, []);
+  const pokazWidok = useCallback(
+    (w: Widok, dzwiek: Dzwiek, przesun: boolean) => {
+      // Pozycje „przed” trzeba zmierzyć, zanim React podmieni wiersze
+      if (w.tabela !== widokRef.current.tabela) przed.current = przesun ? pozycje(tbody.current).mapa : null;
+      widokRef.current = w;
+      setWidok(w);
+      if (dzwiek) graj(dzwiek);
+    },
+    [graj],
+  );
 
   const zamknijRekord = useCallback(() => {
-    pokazWidok(zamknij(widokRef.current).widok, true);
+    const { widok: w, dzwiek } = zamknij(widokRef.current);
+    pokazWidok(w, dzwiek, true);
   }, [pokazWidok]);
 
   useEffect(() => {
@@ -75,7 +82,8 @@ export default function Leaderboard() {
       },
       ukryta: () => document.hidden,
       naDane: (dane, noweId) => {
-        pokazWidok(przyjmij(widokRef.current, dane, noweId).widok, !pierwsze);
+        const { widok: w, dzwiek } = przyjmij(widokRef.current, dane, noweId);
+        pokazWidok(w, dzwiek, !pierwsze);
         pierwsze = false;
         setStatus("live");
       },
@@ -195,6 +203,9 @@ export default function Leaderboard() {
           {status === "live" && czuwanie && "CZUWANIE · KLIKNIJ"}
           {status === "live" && !czuwanie && (top.length === 0 ? "ZAGRAJ PIERWSZY NA MICRO:BICIE" : "GRAJ NA MICRO:BICIE")}
         </p>
+        <button type="button" className="dzwiek" aria-pressed={wlaczony} onClick={przelacz}>
+          DŹWIĘK: {wlaczony ? "WŁ" : "WYŁ"}
+        </button>
         {/* Dla czytnika ekranu: miganie i ekran rekordu widać tylko na ekranie */}
         <p className="sr-only" aria-live="polite">
           {komunikat}

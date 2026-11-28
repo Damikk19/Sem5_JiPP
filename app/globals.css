@@ -194,6 +194,34 @@ body::after {
   color: var(--led);
 }
 
+/* Przełącznik dźwięku pod zachętą */
+.dzwiek {
+  display: block;
+  margin: 16px auto 0;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--muted);
+  background: none;
+  border: 2px solid currentColor;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.dzwiek[aria-pressed="true"] {
+  color: var(--green);
+}
+
+.dzwiek:hover {
+  color: var(--foreground);
+}
+
+.dzwiek:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
 /* ---------- NEW HIGH SCORE: cały ekran, poza powiększeniem trybu TV ---------- */
 /* Rozmiary fontu w wielokrotnościach 8 px, żeby pixelowy font był ostry */
 
