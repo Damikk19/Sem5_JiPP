@@ -143,6 +143,27 @@ describe("walidacja wyniku od bramki", () => {
     ["selektor wariantu po selektorze", "❤\ufe0f\ufe0f"],
     ["znak tagu poza flagą", "ABC\u{E0041}"],
     ["flaga z tagami bez znaku końca", "🏴\u{E0067}\u{E0062}\u{E0065}"],
+    // Selektor wariantu tylko tam, gdzie coś zmienia (VS15/VS16 po emoji, VS16 w keycapie, CJK po znaku CJK)
+    ["VS16 po cyfrze bez keycapa", "ABC1\ufe0f"],
+    ["VS16 po # bez keycapa", "ABC#\ufe0f"],
+    ["VS16 po * bez keycapa", "AB*\ufe0f"],
+    ["VS15 w keycapie", "1\ufe0e\u20e3"],
+    ["selektor CJK po emoji (VS2)", "👾\ufe01"],
+    ["selektor IVS po emoji", "👾\u{E0100}"],
+    ["selektor IVS po literze", "ABC\u{E0100}"],
+    ["mongolski selektor po cyfrze", "1\u180b"],
+    ["mongolski selektor po znaku CJK", "葛\u180b"],
+    ["dwa selektory po znaku CJK", "葛\u{E0100}\u{E0101}"],
+    // Znaki tagów tylko w trzech flagach ze standardu emoji (Anglia, Szkocja, Walia)
+    ["flaga Teksasu (tagi spoza standardu)", "🏴\u{E0075}\u{E0073}\u{E0074}\u{E0078}\u{E007F}"],
+    ["flaga Anglii bez ostatniej litery", "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E007F}"],
+    ["flaga Szkocji z dodatkową literą", "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E0074}\u{E007F}"],
+    ["flaga Walii pisana wielkimi tagami", "🏴\u{E0047}\u{E0042}\u{E0057}\u{E004C}\u{E0053}\u{E007F}"],
+    // Pozostałe znaki formatujące (\p{Cf})
+    ["znak adnotacji U+FFF9", "AB\ufff9C"],
+    ["arabski znak liczby U+0600", "\u0600ABC"],
+    ["egipski znak formatujący U+13430", "A\u{13430}BC"],
+    ["znak liczby Kaithi U+110BD", "ABC\u{110BD}"],
   ])("odrzuca nick z niewidocznym znakiem: %s", (_, id) => {
     expect(parse({ id, wynik: 1 })).toEqual({
       ok: false,
@@ -159,6 +180,10 @@ describe("walidacja wyniku od bramki", () => {
     ["wąska twarda spacja i cienka spacja", "A\u202fB\u2009C", "A B C"],
     ["twarda spacja na początku", "\u00a0ABC", "ABC"],
     ["spacja zwykła na końcu", "ABC ", "ABC"],
+    ["dwie zwykłe spacje w środku", "A  BC", "A BC"],
+    ["spacja, twarda spacja i spacja", "A \u00a0 BC", "A BC"],
+    ["dwie spacje ideograficzne", "A\u3000\u3000BC", "A BC"],
+    ["kilka grup spacji", "A   B  C", "A B C"],
   ])("zapisuje nick w jednej postaci: %s", (_, id, zapisany) => {
     const wynik = parse({ id, wynik: 1 });
     expect(wynik).toEqual({ ok: true, dto: { playerId: zapisany, score: 1 } });
@@ -170,8 +195,9 @@ describe("walidacja wyniku od bramki", () => {
     "👨\u200d👩\u200d👧\u200d👦", "❤\ufe0f\u200d🔥", "🧑\u200d🦰", "🏃🏻\u200d♀\ufe0f", "🐻\u200d❄\ufe0f",
     "🏴\u200d☠\ufe0f", "👁\ufe0f\u200d🗨\ufe0f", "🫱🏻\u200d🫲🏼",
     "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "🏴\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
-    "1\ufe0f\u20e3", "#\ufe0f\u20e3", "☺\ufe0e", "™\ufe0f", "ABC 👾", "GRACZ🏳\ufe0f\u200d🌈",
-    "葛\u{E0100}",
+    "1\ufe0f\u20e3", "#\ufe0f\u20e3", "*\ufe0f\u20e3", "ABC 7\ufe0f\u20e3", "☺\ufe0e", "™\ufe0f", "©\ufe0f",
+    "❤\ufe0f", "👾\ufe0e", "ABC 👾", "GRACZ🏳\ufe0f\u200d🌈", "葛\u{E0100}", "辻\ufe00",
+    "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "🏴", "A B C",
   ])("dalej przyjmuje nick: %j", (id) => {
     const wynik = parse({ id, wynik: 1 });
     expect(wynik).toEqual({ ok: true, dto: { playerId: id.normalize("NFC"), score: 1 } });

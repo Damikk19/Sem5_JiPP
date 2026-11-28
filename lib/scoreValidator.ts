@@ -12,24 +12,28 @@ const GROZNE = /[\p{Cc}\p{Cs}\p{Co}\p{Cn}\p{Zl}\p{Zp}\u061C\u200E\u200F\u202A-\u
 // Nick złożony tylko z nich byłby w rankingu pusty.
 const NIEWIDOCZNE = /[\p{M}\p{Z}\p{Cf}\u115F\u1160\u3164\uFFA0\u2800]/gu;
 
-// Spacje inne niż zwykła (np. twarda spacja U+00A0, spacja ideograficzna U+3000) zamieniamy na zwykłą,
-// żeby nick z twardą spacją był tym samym nickiem co ze zwykłą (zwykła spacja zamienia się sama na siebie)
-const SPACJE = /\p{Zs}/gu;
+// Spacje (zwykłe, twarde U+00A0, ideograficzne U+3000 itd.) zamieniamy na jedną zwykłą, także kilka z rzędu:
+// "A  BC" i "A BC" z twardą spacją wyglądają na ekranie tak samo, więc mają być tym samym nickiem
+const SPACJE = /\p{Zs}+/gu;
 
 // Znaki, które Unicode każe przy wyświetlaniu pomijać (Default_Ignorable_Code_Point: m.in. miękki dywiz,
-// spacja zerowej szerokości, BOM, łącznik wyrazów, wypełniacze Hangul), i pusty znak Braille'a. W dowolnym
-// miejscu nicku dają nick, który wygląda tak samo, a dla bazy jest inny, więc omija limit nicku i duplikaty.
-const UKRYTE = /[\p{Default_Ignorable_Code_Point}\u2800]/u;
-// Wyjątki potrzebne emoji (kontrakt: emoji złożone są w porządku). Każdy jest dozwolony tylko w swoim miejscu:
-// - znaki tagów we fladze z tagami (🏴 + tagi + znak końca, np. flaga Szkocji),
-// - łącznik ZWJ między dwoma emoji (👩‍💻; po emoji może być selektor wariantu albo odcień skóry),
-// - selektor wariantu zaraz po emoji (❤️, 1️⃣) albo po znaku CJK, gdzie wybiera wariant znaku.
-const FLAGA_Z_TAGAMI = /\u{1F3F4}[\u{E0020}-\u{E007E}]+\u{E007F}/gu;
+// spacja zerowej szerokości, BOM, łącznik wyrazów, wypełniacze Hangul, selektory wariantów), pozostałe znaki
+// formatujące (\p{Cf}, np. U+FFF9, U+0600) i pusty znak Braille'a. W dowolnym miejscu nicku dają nick, który
+// wygląda tak samo albo prawie tak samo, a dla bazy jest inny, więc omija limit nicku i duplikaty.
+const UKRYTE = /[\p{Default_Ignorable_Code_Point}\p{Cf}\u2800]/u;
+// Wyjątki potrzebne emoji i znakom CJK (kontrakt: emoji złożone są w porządku). Każdy tylko w swoim miejscu:
+// - znaki tagów tylko w trzech flagach z tagami, które są w standardzie emoji: Anglii, Szkocji i Walii,
+// - selektor wariantu VS15/VS16 zaraz po emoji (❤️, ☺︎), ale nie po cyfrze, # ani *: tam VS16 tylko w keycapie
+//   (cyfra + VS16 + U+20E3, np. 1️⃣), a selektory znaków CJK (U+FE00–FE0F, U+E0100–E01EF) zaraz po znaku CJK;
+//   mongolskie selektory (U+180B–180D, U+180F) nigdy,
+// - łącznik ZWJ między dwoma emoji (👩‍💻; po emoji może być selektor wariantu albo odcień skóry).
+const FLAGA_Z_TAGAMI = /\u{1F3F4}\u{E0067}\u{E0062}(?:\u{E0065}\u{E006E}\u{E0067}|\u{E0073}\u{E0063}\u{E0074}|\u{E0077}\u{E006C}\u{E0073})\u{E007F}/gu;
+const SELEKTOR_W_MIEJSCU =
+  /(?<=[^\P{Emoji}0-9#*])[\uFE0E\uFE0F]|(?<=[0-9#*])\uFE0F(?=\u20E3)|(?<=\p{Ideographic})[\uFE00-\uFE0F\u{E0100}-\u{E01EF}]/gu;
 const ZWJ_W_EMOJI = /(?<=\p{Extended_Pictographic}[\uFE0E\uFE0F\u{1F3FB}-\u{1F3FF}]*)\u200D(?=\p{Extended_Pictographic})/gu;
-const SELEKTOR_PO_EMOJI = /(?<=[\p{Emoji}\p{Ideographic}])\p{Variation_Selector}/gu;
 
 function maUkryteZnaki(nick: string) {
-  const bezCzesciEmoji = nick.replace(FLAGA_Z_TAGAMI, "\u{1F3F4}").replace(ZWJ_W_EMOJI, "").replace(SELEKTOR_PO_EMOJI, "");
+  const bezCzesciEmoji = nick.replace(FLAGA_Z_TAGAMI, "\u{1F3F4}").replace(SELEKTOR_W_MIEJSCU, "").replace(ZWJ_W_EMOJI, "");
   return UKRYTE.test(bezCzesciEmoji);
 }
 

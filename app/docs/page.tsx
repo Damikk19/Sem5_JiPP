@@ -23,7 +23,7 @@ export default function Docs() {
         {`{ "id": "ABC", "wynik": 50 }`}
       </pre>
       <p>
-        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem i bez niewidocznych znaków, np. spacji zerowej szerokości (emoji, także złożone, są w porządku). API zapisuje nick w jednej postaci (NFC, zwykłe spacje zamiast twardych). <code>wynik</code>: liczba całkowita 0–99999 (może
+        <code>id</code>: identyfikator gracza, 1–32 znaki, bez znaków sterujących i zmieniających kierunek tekstu, z co najmniej jednym widocznym znakiem i bez niewidocznych znaków, np. spacji zerowej szerokości (emoji, także złożone, są w porządku). API zapisuje nick w jednej postaci (NFC, jedna zwykła spacja zamiast każdej grupy spacji). <code>wynik</code>: liczba całkowita 0–99999 (może
         przyjść jako tekst z samych cyfr, np. <code>&quot;50&quot;</code>).
       </p>
       <p>
