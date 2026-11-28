@@ -202,7 +202,11 @@ describe("POST /api/scores: limit rozmiaru body (1024 B)", () => {
     let przeczytane = 0;
     const cancel = vi.fn();
     const body = new ReadableStream<Uint8Array>({
-      pull(c) {
+      // Każdy kawałek czeka na kolejny obieg pętli zdarzeń, a po 64 KB strumień się kończy. Gdyby kod czytał
+      // dalej po limicie, test od razu się nie powiedzie, zamiast zawiesić całe npm test.
+      async pull(c) {
+        await new Promise((ok) => setTimeout(ok, 0));
+        if (przeczytane >= 64 * 1024) return c.close();
         przeczytane += 512;
         c.enqueue(new TextEncoder().encode(" ".repeat(512)));
       },

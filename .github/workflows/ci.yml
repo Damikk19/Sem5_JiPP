@@ -19,6 +19,8 @@ jobs:
   sprawdzenie:
     name: Lint, typy, testy, build
     runs-on: ubuntu-latest
+    # Zawieszony krok (np. test, który czeka w nieskończoność) nie blokuje runnera na 6 godzin
+    timeout-minutes: 10
     steps:
       # Akcje przypięte do konkretnego commita: tag można przesunąć, commita nie
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
